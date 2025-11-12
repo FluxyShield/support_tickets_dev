@@ -11,6 +11,11 @@ if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
 
+// Vérifier que config.php est bien chargé
+if (!function_exists('sendEmail')) {
+    require_once ROOT_PATH . '/config.php';
+}
+
 /**
  * ⭐ AMÉLIORATION SÉCURITÉ : Valide la politique de mot de passe.
  * @param string $password Le mot de passe à vérifier.

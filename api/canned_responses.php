@@ -3,6 +3,11 @@ if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
 
+// Vérifier que config.php est bien chargé
+if (!function_exists('sendEmail')) {
+    require_once ROOT_PATH . '/config.php';
+}
+
 /**
  * Récupère la liste de tous les modèles de réponse.
  */

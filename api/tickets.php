@@ -11,6 +11,10 @@ if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
 
+// Vérifier que config.php est bien chargé
+if (!function_exists('sendEmail')) {
+    require_once ROOT_PATH . '/config.php';
+}
 function ticket_list()
 {
     // ⭐ SOLUTION : Vérifier si un admin OU un utilisateur est connecté

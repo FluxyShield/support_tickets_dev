@@ -11,6 +11,11 @@ if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
 
+// Vérifier que config.php est bien chargé
+if (!function_exists('sendEmail')) {
+    require_once ROOT_PATH . '/config.php';
+}
+
 function get_admins() {
     requireAuth('admin');
     $db = Database::getInstance()->getConnection();
