@@ -893,6 +893,16 @@ async function inviteAdmin(e) {
     errorDiv.style.display = 'none';
     successDiv.style.display = 'none';
 
+    // --- DÉBUT DE LA CORRECTION ---
+    // 1. Cible le bouton
+    const inviteForm = e.target;
+    const submitButton = inviteForm.querySelector('button[type="submit"]');
+
+    // 2. Désactive le bouton et affiche "Envoi..."
+    submitButton.disabled = true;
+    submitButton.textContent = 'Envoi en cours...';
+    // --- FIN DE LA CORRECTION ---
+
     const emailInput = document.getElementById('adminEmail');
     const email = emailInput.value;
 
@@ -915,6 +925,9 @@ async function inviteAdmin(e) {
         console.error('Erreur invitation admin:', error);
         errorDiv.textContent = '❌ Erreur: ' + error.message;
         errorDiv.style.display = 'block';
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Envoyer l'invitation";
     }
 }
 
