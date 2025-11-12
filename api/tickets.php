@@ -324,15 +324,15 @@ function ticket_update() {
     $msg_stmt->bind_param("iss", $id, $author_name_enc, $system_message_enc);
     $msg_stmt->execute();
 
-    // 2. Répondre immédiatement à l'admin pour une UI réactive
-    jsonResponse(true, 'Statut du ticket mis à jour.');
 
-    // 3. Préparer et envoyer l'email en "arrière-plan"
-    if (function_exists('fastcgi_finish_request')) {
-        fastcgi_finish_request();
-    }
+    // ==========================================================
+    // === DÉBUT DE LA CORRECTION (On envoie AVANT de répondre) ===
+    // ==========================================================
 
-    // 4. Récupérer les infos pour l'email
+    // 2. Préparer et envoyer l'email D'ABORD
+    $email_sent = false;
+    
+    // 3. Récupérer les infos pour l'email
     $info_stmt = $db->prepare("SELECT t.subject_encrypted, u.email_encrypted, u.firstname_encrypted FROM tickets t JOIN users u ON t.user_id = u.id WHERE t.id = ?");
     $info_stmt->bind_param("i", $id);
     $info_stmt->execute();
@@ -351,8 +351,19 @@ function ticket_update() {
             <p>Le statut de votre ticket <strong>#{$id} - " . htmlspecialchars($ticket_subject) . "</strong> a été mis à jour. Il est maintenant : <strong>{$status}</strong>.</p>
             <p style='text-align: center; margin: 30px 0;'><a href='{$ticket_link}' style='background: #EF8000; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Voir mon ticket</a></p>
         ";
-        sendEmail($user_email, $email_subject, $email_body);
+        $email_sent = sendEmail($user_email, $email_subject, $email_body);
     }
+
+    // 4. Répondre à l'admin (maintenant que l'email est parti)
+    if ($email_sent) {
+        jsonResponse(true, 'Statut du ticket mis à jour et email envoyé.');
+    } else {
+        jsonResponse(true, 'Statut mis à jour (mais l\'email de notification a échoué).');
+    }
+    
+    // ==========================================================
+    // === FIN DE LA CORRECTION ===
+    // ==========================================================
 }
 
 function ticket_delete() {

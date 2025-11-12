@@ -301,25 +301,24 @@ function admin_invite() {
             <p style='font-size: 12px; color: #888;'>Si vous ne parvenez pas à cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :<br><a href='{$invitationLink}' style='color: #EF8000;'>{$invitationLink}</a></p>
             <p style='margin-top: 20px;'>Si vous n'êtes pas à l'origine de cette invitation, vous pouvez ignorer cet email en toute sécurité.</p>";
 
-        // ⭐ CORRECTION : Répondre immédiatement au client pour éviter le timeout.
-        // On envoie la réponse JSON et on dit au navigateur de fermer la connexion.
-        jsonResponse(true, 'Invitation envoyée avec succès.');
-        
-        // Forcer la fin de la réponse HTTP pour que le client ne soit plus en attente.
-        if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
+
+        // ==========================================================
+        // === DÉBUT DE LA CORRECTION (On envoie AVANT de répondre) ===
+        // ==========================================================
+
+        // L'envoi de l'email se fait maintenant "en premier".
+        if (sendEmail($email, 'Invitation Administrateur', $emailBody)) {
+            // L'email est parti, on peut répondre au client
+            jsonResponse(true, 'Invitation envoyée avec succès.');
         } else {
-            // Fallback pour les serveurs non-FPM (peut être moins fiable)
-            ignore_user_abort(true);
-            ob_start();
-            header('Connection: close');
-            header('Content-Length: ' . ob_get_length());
-            ob_end_flush();
-            flush();
+            // L'email a échoué, on prévient le client
+            jsonResponse(false, 'Erreur lors de l\'envoi de l\'invitation. Vérifiez les logs.');
         }
 
-        // L'envoi de l'email se fait maintenant "en arrière-plan", après que le client a reçu sa réponse.
-        sendEmail($email, 'Invitation Administrateur', $emailBody);
+        // ==========================================================
+        // === FIN DE LA CORRECTION ===
+        // ==========================================================
+
     } else {
         jsonResponse(false, 'Erreur lors de la création de l\'invitation.');
     }
