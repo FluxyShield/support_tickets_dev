@@ -214,17 +214,27 @@ function sendEmail($to, $subject, $body, $altBody = '') {
         $mail->setFrom($_ENV['MAIL_FROM_EMAIL'] ?? $_ENV['MAIL_USERNAME'], $_ENV['MAIL_FROM_NAME'] ?? 'Support Descamps');
         $mail->addAddress($to);
 
+        // --- Logo intégré ---
+        $logoPath = __DIR__ . '/assets/logo.png';
+        if (file_exists($logoPath)) {
+            $mail->addEmbeddedImage($logoPath, 'logoimg');
+        }
+
         // --- Contenu HTML ---
         $fullBody = "
         <html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px;'>
             <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 12px;'>
+                
                 <div style='text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;'>
-                    <img src='" . APP_LOGO_URL . "' alt='" . APP_NAME . " Logo' style='max-width: 150px; height: auto;'>
+                    <img src='cid:logoimg' alt='" . APP_NAME . " Logo' style='max-width: 150px; height: auto;'>
                 </div>
+
                 " . $body . "
+
                 <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #888;'>
                     <p>Ceci est un message automatique, merci de ne pas y répondre.</p>
                 </div>
+
             </div>
         </body></html>";
 
