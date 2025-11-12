@@ -299,7 +299,7 @@ function admin_invite() {
                 <a href='{$invitationLink}' style='background: #4A4A49; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Finaliser mon inscription</a>
             </p>
             <p style='font-size: 12px; color: #888;'>Si vous ne parvenez pas à cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :<br><a href='{$invitationLink}' style='color: #EF8000;'>{$invitationLink}</a></p>
-            <p style='margin-top: 20px;'>Si vous n'êtes pas à l'origine de cette invitation, vous pouvez ignorer cet email en toute sécurité.</p>";
+           <p style='margin-top: 20px;'>Si vous avez reçu cet email par erreur, veuillez l'ignorer et le supprimer.</p>";
 
 
         // ==========================================================
