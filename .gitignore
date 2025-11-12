@@ -9,10 +9,6 @@ composer.phar
 
 # Uploads (fichiers utilisateurs)
 uploads/
-*.pdf
-*.jpg
-*.jpeg
-*.png
 
 # Logs
 logs/
