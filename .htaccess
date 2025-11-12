@@ -1,0 +1,32 @@
+# --- Sécurité de l'Application Ticket ---
+ErrorDocument 404 /support_tickets/404.html
+# Empêcher les gens de "lister" le contenu de tes dossiers
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 1. Bloquer l'accès aux fichiers critiques
+    # ------------------------------------------------
+    # Bloque le .env, les fichiers composer, et le .git
+    RewriteRule ^\.env - [F,L]
+    RewriteRule ^composer\.json - [F,L]
+    RewriteRule ^composer\.lock - [F,L]
+    RewriteRule ^\.git - [F,L]
+    RewriteRule ^\.gitignore - [F,L]
+
+    # 2. Bloquer l'accès direct aux scripts PHP dangereux
+    # ------------------------------------------------
+    # On bloque tout ce qui peut modifier la BDD
+    #RewriteRule ^(install|fix_stats|install_assignment)\.php$ - [F,L]
+
+    # 3. Bloquer l'accès direct aux fichiers de logique PHP
+    # ------------------------------------------------
+    # (Ils doivent être "inclus" par un autre script, pas ouverts par un utilisateur)
+    RewriteRule ^config\.php$ - [F,L]
+    
+    # 4. Bloquer l'accès au dossier 'vendor' (très important)
+    # ------------------------------------------------
+    RewriteRule ^vendor/ - [F,L]
+
+</IfModule>

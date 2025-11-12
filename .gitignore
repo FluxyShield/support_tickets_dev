@@ -1,0 +1,41 @@
+# Fichiers de configuration sensibles
+.env
+.env.local
+.env.production
+
+# Dépendances Composer
+vendor/
+composer.phar
+
+# Uploads (fichiers utilisateurs)
+uploads/
+*.pdf
+*.jpg
+*.jpeg
+*.png
+
+# Logs
+logs/
+*.log
+
+# Backups
+*.sql
+*.bak
+*.backup
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Fichiers temporaires
+*.tmp
+*.cache
+*.swp
+*~

@@ -1,0 +1,5 @@
+# Configuration du serveur Apache pour le projet Support Ticketing
+
+# Rediriger les erreurs 404 (Page non trouvée) vers notre page personnalisée.
+# Le chemin doit être relatif à la racine du site (localhost).
+ErrorDocument 404 /support_tickets/404.html
