@@ -226,7 +226,7 @@ function sendEmail($to, $subject, $body, $altBody = '') {
             <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 12px;'>
                 
                 <div style='text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;'>
-                    <img src='cid:logoimg' alt='" . APP_NAME . " Logo' style='max-width: 150px; height: auto;'>
+                    <img src='cid:logoimg' alt='" . APP_NAME . " Logo' width='150' style='max-width: 150px; height: auto;'>
                 </div>
 
                 " . $body . "
