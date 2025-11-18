@@ -1,8 +1,15 @@
 /**
- * DRAG & DROP UPLOAD SYSTEM
- * ⭐ MIS À JOUR : Ajout du SVG final (style vidéo / code de Claude)
+ * @file drag-drop-upload.js
+ * @brief Classe pour gérer le téléversement de fichiers par glisser-déposer.
+ *
+ * Cette classe encapsule la logique pour une zone de "drag and drop" de fichiers.
+ * Elle gère :
+ * - L'initialisation de la zone de dépôt et des écouteurs d'événements.
+ * - La validation des fichiers (taille, type, nombre maximum).
+ * - La prévisualisation des fichiers ajoutés.
+ * - La suppression de fichiers de la liste de prévisualisation.
+ * - Le téléversement asynchrone des fichiers vers l'API.
  */
-
 class DragDropUpload {
     constructor(options = {}) {
         this.dropZoneId = options.dropZoneId || 'dropZone';
@@ -17,7 +24,6 @@ class DragDropUpload {
     }
 
     init() {
-        // On garde le style des Previews, mais le style principal est dans style.css
         this.injectPreviewStyles();
         this.setupDropZone();
         this.attachEventListeners();
@@ -26,14 +32,9 @@ class DragDropUpload {
     setupDropZone() {
         const dropZone = document.getElementById(this.dropZoneId);
         if (!dropZone) return;
-
-        // ⭐ NOUVEAU HTML (de Claude, le bon SVG)
         dropZone.innerHTML = `
             <div class="custom-drop-zone-icon">
                 <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-                    <path d="M90 55C90 50.8 88.8 46.9 86.7 43.6C84.2 31.8 73.6 23 61 23C51.8 23 43.6 28.1 39.4 35.8C37.3 35.3 35.2 35 33 35C21.4 35 12 44.4 12 56C12 67.6 21.4 77 33 77H87C98.6 77 108 67.6 108 56C108 45.2 100.1 36.1 90 55Z" fill="currentColor"/>
-                    <path d="M60 45L60 85M60 45L50 55M60 45L70 55" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                <!-- ⭐ CORRECTION : Remplacement de l'icône SVG par une version plus claire -->
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
                     <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14C0 17.31 2.69 20 6 20H19C21.76 20 24 17.76 24 15C24 12.36 21.95 10.22 19.35 10.04Z" fill="currentColor"/>
                     <path d="M12 11L12 17M12 11L10 13M12 11L14 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -46,10 +47,7 @@ class DragDropUpload {
     }
     
     injectPreviewStyles() {
-        // On garde les styles pour les previews, car ils sont dynamiques
         if (document.getElementById('dragDropPreviewStyles')) return;
-        
-        // On supprime aussi l'ancien style "dragDropStyles" au cas où
         const oldStyle = document.getElementById('dragDropStyles');
         if (oldStyle) oldStyle.remove();
         
@@ -329,6 +327,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // On cherche aussi la dropzone de l'admin au cas où
-    // Note: l'init de celle-ci est gérée dans `viewTicket` dans admin-script.js
 });

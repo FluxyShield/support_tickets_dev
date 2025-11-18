@@ -1,13 +1,37 @@
+<?php
+    /**
+     * ===================================================================
+     * ⭐ SÉCURITÉ : VÉRIFICATION DU JETON CÔTÉ SERVEUR (AVANT TOUT HTML)
+     * ===================================================================
+     * Ce bloc est la première chose que le serveur exécute.
+     * On vérifie la validité du jeton AVANT d'envoyer le moindre code HTML.
+     * Si le jeton est manquant, invalide ou expiré, on redirige
+     * l'utilisateur vers la page de connexion sans jamais lui montrer
+     * le formulaire d'inscription.
+     */
+    define('ROOT_PATH', __DIR__);
+    require_once 'config.php';
+    $token = $_GET['token'] ?? '';
+    if (empty($token)) {
+        header('Location: login.php?error=notoken');
+        exit();
+    }
+
+    require_once 'validate_token.php'; // Inclut la logique de validation
+    if (!function_exists('isTokenValid') || !isTokenValid($token)) {
+        header('Location: login.php?error=invalidtoken');
+        exit();
+    }
+
+    initialize_session(); // Initialise la session mais n'envoie plus les headers.
+
+    // Le jeton est valide, on peut maintenant envoyer les en-têtes de sécurité.
+    setSecurityHeaders();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <?php
-        // ⭐ CORRECTION SÉCURITÉ : Définir ROOT_PATH avant d'inclure config.php
-        define('ROOT_PATH', __DIR__);
-        require_once 'config.php';
-        initialize_session();
-    ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Finaliser l'inscription Admin - Support Ticketing</title>
@@ -88,34 +112,11 @@
     <script>
         let urlToken = '';
 
-        // ⭐ AMÉLIORATION SÉCURITÉ : Validation du jeton au chargement de la page
+        // La validation du jeton est maintenant entièrement gérée côté serveur en PHP.
+        // Le code JavaScript ci-dessous n'est plus nécessaire pour la validation initiale.
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
-            if (!params.has('token')) {
-                // Si aucun token, redirection vers la page de connexion admin
-                window.location.href = 'login.php';
-                return;
-            }
             urlToken = params.get('token');
-
-            // Afficher le chargement pendant la vérification
-            // La validation se fait maintenant côté serveur, on peut enlever le pré-chargement
-
-            // Appeler notre nouveau script de validation
-            const res = await fetch(`validate_token.php?token=${encodeURIComponent(urlToken)}`);
-            const data = await res.json();
-
-            if (!data.valid) {
-                // ⭐ SOLUTION : Au lieu de rediriger, on affiche une erreur claire sur la page.
-                const form = document.getElementById('registerForm');
-                const errorDiv = document.getElementById('errorMsg');
-                form.style.display = 'none'; // Cacher le formulaire
-                errorDiv.innerHTML = '❌ Ce lien d\'invitation est invalide ou a expiré. <br>Veuillez contacter un administrateur pour recevoir une nouvelle invitation.';
-                errorDiv.style.display = 'block';
-                document.getElementById('postRegister').style.display = 'block'; // Afficher le bouton de retour
-            } else {
-                // Le token est valide, on affiche le formulaire
-            }
         });
 
         async function registerAdmin(e) {

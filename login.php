@@ -1,16 +1,40 @@
+<?php
+/**
+ * @file login.php
+ * @brief Page de connexion dédiée aux administrateurs.
+ *
+ * Cette page fournit une interface sécurisée pour que les administrateurs puissent se connecter
+ * au panneau d'administration. Elle initialise une session, génère un jeton CSRF pour la
+ * sécurité du formulaire et utilise JavaScript pour envoyer les identifiants de manière
+ * asynchrone à l'API (endpoint `admin_login`).
+ */
+
+// ⭐ SOLUTION : Toute la logique PHP AVANT le HTML
+define('ROOT_PATH', __DIR__);
+require_once 'config.php';
+session_name('admin_session');
+initialize_session();
+
+// ⭐ AMÉLIORATION : Si l'admin est déjà connecté, le rediriger vers admin.php
+if (isset($_SESSION['admin_id'])) {
+    header('Location: admin.php');
+    exit();
+}
+
+// ⭐ Récupération du token CSRF APRÈS l'initialisation de session
+$csrf_token = $_SESSION['csrf_token'] ?? '';
+
+// ⭐ Libération de la session pour les performances
+session_write_close();
+
+// ⭐ Maintenant on peut afficher le HTML en toute sécurité
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php
-        // ⭐ CORRECTION SÉCURITÉ : Définir ROOT_PATH et initialiser la session pour le CSRF.
-        define('ROOT_PATH', __DIR__);
-        require_once 'config.php';
-        initialize_session();
-    ?>
-    <!-- Jeton CSRF généré de manière fiable -->
-    <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
     <link rel="stylesheet" href="style.css">
     <title>Connexion Admin - Support Ticketing</title>
     <style>
@@ -74,8 +98,8 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        // ⭐ CORRECTION SÉCURITÉ : Lire le jeton CSRF depuis la balise meta.
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         async function loginAdmin(e) {
@@ -89,19 +113,14 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        // Pas de CSRF token ici, car c'est une action publique (anonyme)
                     },
                     body: JSON.stringify({ email, password })
                 });
 
-                const data = await res.json(); // Cette ligne ne devrait plus causer d'erreur.
+                const data = await res.json();
 
                 if (data.success) {
-                    localStorage.setItem('admin_firstname', data.user.firstname);
-                    localStorage.setItem('admin_lastname', data.user.lastname);
-                    localStorage.setItem('admin_email', data.user.email);
-                    localStorage.setItem('admin_id', data.user.id);
-                    
+                    // ⭐ AMÉLIORATION : Plus besoin de localStorage, la session PHP gère tout
                     window.location.href = 'admin.php';
                 } else {
                     showError(data.message);
@@ -120,6 +139,5 @@
             setTimeout(() => errorDiv.style.display = 'none', 5000);
         }
     </script>
-    <?php session_write_close(); // Libère la session pour les autres requêtes ?>
 </body>
 </html>

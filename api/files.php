@@ -59,10 +59,12 @@ function ticketUploadFile() {
     } elseif (!$is_admin && !$user_id) {
          jsonResponse(false, 'Authentification requise');
     }
-    $upload_dir = __DIR__ . '/uploads';
+    // ⭐ SÉCURITÉ : Le dossier d'upload est maintenant HORS du webroot.
+    // On remonte de 3 niveaux depuis /api/ pour sortir de /htdocs/support_tickets/
+    // et on entre dans un dossier 'secure_uploads' (ex: c:/xampp/secure_uploads).
+    $upload_dir = dirname(__DIR__, 3) . '/secure_uploads';
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
-        file_put_contents($upload_dir . '/.htaccess', 'Deny from all');
     }
     $unique_filename = uniqid('file_', true) . '.' . $file_extension;
     $destination = $upload_dir . '/' . $unique_filename;
@@ -83,6 +85,14 @@ function ticketUploadFile() {
     $stmt->bind_param("ississ", $ticket_id, $filename_enc, $original_filename_enc, $file['size'], $mime_type, $author_name_enc);
     
     if ($stmt->execute()) {
+        $file_id = $stmt->insert_id;
+        // ⭐ AUDIT : Enregistrer le téléversement du fichier
+        logAuditEvent('FILE_UPLOAD', $ticket_id, [
+            'file_id' => $file_id,
+            'filename' => $file['name'],
+            'uploader_id' => $is_admin ? $_SESSION['admin_id'] : $_SESSION['user_id'],
+            'uploader_role' => $is_admin ? 'admin' : 'user'
+        ]);
         
         $message = "[Message Système] <strong>" . htmlspecialchars($author_name) . "</strong> a joint un fichier : " . htmlspecialchars($file['name']);
         $message_enc = encrypt($message);
@@ -95,7 +105,7 @@ function ticketUploadFile() {
         $msgStmt->execute();
         
         jsonResponse(true, 'Fichier uploadé avec succès', [
-            'file_id' => $stmt->insert_id,
+            'file_id' => $file_id,
             'original_name' => $file['name'],
             'size' => $file['size']
         ]);
@@ -128,7 +138,8 @@ function ticketDownloadFile() {
     }
     $filename = decrypt($file['filename_encrypted']);
     $original_filename = decrypt($file['original_filename_encrypted']);
-    $filepath = __DIR__ . '/uploads/' . $filename;
+    // ⭐ SÉCURITÉ : Utiliser le nouveau chemin sécurisé pour le téléchargement.
+    $filepath = dirname(__DIR__, 3) . '/secure_uploads/' . $filename;
     if (!file_exists($filepath)) {
         http_response_code(404); die('Fichier physique non trouvé');
     }
@@ -143,29 +154,44 @@ function ticketDownloadFile() {
     header('Content-Length: ' . filesize($filepath));
     header('Cache-Control: public, max-age=3600');
     header('Accept-Ranges: bytes');
-    if (!$preview) { header('X-Frame-Options: SAMEORIGIN'); }
+    header('X-Frame-Options: SAMEORIGIN'); // Toujours appliquer pour prévenir le clickjacking
     readfile($filepath);
     exit;
 }
 function ticketDeleteFile() {
     requireAuth('admin'); 
     $input = getInput();
-    $file_id = (int)($input['file_id'] ?? 0);
+    $file_id = filter_var($input['file_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $ticket_id = filter_var($input['ticket_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+    if (!$file_id || !$ticket_id) {
+        jsonResponse(false, 'ID de fichier ou de ticket invalide.');
+    }
+
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("SELECT tf.*, t.user_id FROM ticket_files tf JOIN tickets t ON tf.ticket_id = t.id WHERE tf.id = ?");
-    $stmt->bind_param("i", $file_id);
+
+    // ⭐ SÉCURITÉ (Anti-IDOR) : Vérifier que le fichier appartient bien au ticket spécifié.
+    $stmt = $db->prepare("SELECT tf.filename_encrypted FROM ticket_files tf WHERE tf.id = ? AND tf.ticket_id = ?");
+    $stmt->bind_param("ii", $file_id, $ticket_id);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows === 0) {
-        jsonResponse(false, 'Fichier non trouvé');
+        jsonResponse(false, 'Accès non autorisé ou fichier non trouvé pour ce ticket.');
     }
     $file = $result->fetch_assoc();
     $filename = decrypt($file['filename_encrypted']);
-    $filepath = __DIR__ . '/uploads/' . $filename;
+    // ⭐ SÉCURITÉ : Utiliser le nouveau chemin sécurisé pour la suppression.
+    $filepath = dirname(__DIR__, 3) . '/secure_uploads/' . $filename;
     if (file_exists($filepath)) { unlink($filepath); }
     $deleteStmt = $db->prepare("DELETE FROM ticket_files WHERE id = ?");
     $deleteStmt->bind_param("i", $file_id);
     if ($deleteStmt->execute()) {
+        // ⭐ AUDIT : Enregistrer la suppression du fichier
+        logAuditEvent('FILE_DELETE', $ticket_id, [
+            'file_id' => $file_id,
+            'filename' => $filename
+        ]);
+
         jsonResponse(true, 'Fichier supprimé');
     }
     jsonResponse(false, 'Erreur lors de la suppression');

@@ -1,9 +1,10 @@
 {
-    "name": "support-ticketing/system",
-    "description": "Système de support ticketing sécurisé avec chiffrement",
+    "name": "descamps/support-ticket-system",
+    "description": "Fichier de manifeste pour Composer. Il définit les métadonnées du projet et ses dépendances PHP (comme PHPMailer, Monolog, etc.). Ce fichier est utilisé par Composer pour installer, mettre à jour et gérer les bibliothèques tierces nécessaires au bon fonctionnement de l'application.",
     "type": "project",
     "require": {
         "php": ">=7.4",
+        "monolog/monolog": "^3.9",
         "phpmailer/phpmailer": "^7.0",
         "vlucas/phpdotenv": "^5.6"
     },

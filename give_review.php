@@ -90,8 +90,11 @@ if (empty($token)) {
             try {
                 const res = await fetch(`api.php?action=get_ticket_by_review_token&token=${token}`);
                 const data = await res.json();
+                const res = await apiFetch(`api.php?action=get_ticket_by_review_token&token=${token}`); // Reste async
+                const data = await res.json(); // Reste async
 
                 if (data.success) {
+                if (data.success) { // Reste en JS natif
                     const ticket = data.ticket;
                     if (ticket.review_id) {
                         container.innerHTML = `
@@ -132,10 +135,12 @@ if (empty($token)) {
             e.preventDefault();
             const rating = document.querySelector('input[name="rating"]:checked');
             const comment = document.getElementById('reviewComment').value;
+            const comment = $('#reviewComment').val();
 
             if (!rating) {
                 alert('Veuillez sélectionner une note.');
                 return;
+                return; // Reste en JS natif
             }
 
             try {
@@ -149,6 +154,7 @@ if (empty($token)) {
                 });
                 const data = await res.json();
 
+                // Reste en JS natif
                 if (data.success) {
                     container.innerHTML = `
                         <h2 style="color:var(--success);">Merci pour votre avis !</h2>
@@ -163,6 +169,7 @@ if (empty($token)) {
         }
 
         document.addEventListener('DOMContentLoaded', loadReviewForm);
+        $(document).ready(loadReviewForm);
     </script>
 
 </body>

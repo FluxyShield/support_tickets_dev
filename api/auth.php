@@ -33,6 +33,9 @@ function validatePasswordPolicy($password) {
 }
 
 function register() {
+    // ⭐ SÉCURITÉ : Limiter la création de comptes (5 par heure par IP).
+    checkRateLimit('register', 5, 3600);
+
     $input = getInput();
     $firstname = sanitizeInput(trim($input['firstname'] ?? ''));
     $lastname = sanitizeInput(trim($input['lastname'] ?? ''));
@@ -44,6 +47,11 @@ function register() {
     if (empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
         jsonResponse(false, 'Tous les champs marqués d\'un * sont requis.');
     }
+    // ⭐ SÉCURITÉ : Valider la longueur minimale du prénom et du nom côté serveur
+    if (strlen($firstname) < 2 || strlen($lastname) < 2) {
+        jsonResponse(false, 'Le prénom et le nom doivent contenir au moins 2 caractères.');
+    }
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         jsonResponse(false, 'L\'adresse email fournie n\'est pas valide.');
     }
@@ -124,10 +132,15 @@ function login() {
 
         // ⭐ AMÉLIORATION : Vérifier si c'est un admin qui essaie de se connecter
         if ($user['role'] === 'admin') {
-            jsonResponse(false, 'Les comptes administrateur ne peuvent pas se connecter ici. Veuillez utiliser la page de connexion admin.');
+            // ⭐ SÉCURITÉ : Renvoyer un message générique pour ne pas révéler
+            // l'existence d'un compte admin (prévention de l'énumération d'utilisateurs).
+            jsonResponse(false, 'Identifiants incorrects ou compte non trouvé.');
         }
 
         if (password_verify($password, $user['password_hash'])) {
+            // ⭐ SÉCURITÉ : Régénérer l'ID de session pour prévenir la fixation de session.
+            session_regenerate_id(true);
+
             // Le mot de passe est correct
             $firstname = decrypt($user['firstname_encrypted']);
             $lastname = decrypt($user['lastname_encrypted']);
@@ -218,6 +231,9 @@ function admin_login() {
         $user = $result->fetch_assoc();
 
         if (password_verify($password, $user['password_hash'])) { // La colonne s'appelle maintenant password_hash
+            // ⭐ SÉCURITÉ : Régénérer l'ID de session pour prévenir la fixation de session.
+            session_regenerate_id(true);
+
             // --- 5. Connexion réussie : Effacer toutes les tentatives échouées pour cette IP/email ---
             $clear_attempts_stmt = $db->prepare("DELETE FROM login_attempts WHERE ip_address = ? OR email_attempted = ?");
             $clear_attempts_stmt->bind_param("ss", $ip_address, $email);
@@ -229,6 +245,12 @@ function admin_login() {
             $_SESSION['admin_firstname'] = decrypt($user['firstname_encrypted']);
             $_SESSION['admin_lastname'] = decrypt($user['lastname_encrypted']);
             // ⭐ FIN CORRECTION
+
+            // ⭐ AUDIT : Enregistrer la connexion réussie de l'admin
+            logAuditEvent('ADMIN_LOGIN_SUCCESS', $user['id']);
+
+            // ⭐ SÉCURITÉ : Journaliser la tentative de connexion réussie
+            Log::getLogger()->info('Connexion admin réussie', ['email' => $email, 'ip' => $ip_address]);
 
             jsonResponse(true, 'Connexion réussie', [
                 'user' => [
@@ -247,13 +269,21 @@ function admin_login() {
     $record_attempt_stmt->bind_param("ss", $ip_address, $email);
     $record_attempt_stmt->execute();
 
+    Log::getLogger()->warning('Tentative de connexion admin échouée', ['email' => $email, 'ip' => $ip_address]);
+
     jsonResponse(false, 'Identifiants incorrects ou compte non trouvé.');
 }
 
 function admin_invite() {
     requireAuth('admin');
+    $inviting_admin_id = $_SESSION['admin_id'];
     $input = getInput();
     $email = trim($input['email'] ?? '');
+
+    // ⭐ SÉCURITÉ : Valider que l'email n'est pas vide avant de le traiter
+    if (empty($email)) {
+        jsonResponse(false, 'L\'adresse email est requise.');
+    }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         jsonResponse(false, 'Adresse email invalide.');
@@ -309,6 +339,9 @@ function admin_invite() {
         // L'envoi de l'email se fait maintenant "en premier".
         if (sendEmail($email, 'Invitation Administrateur', $emailBody)) {
             // L'email est parti, on peut répondre au client
+            // ⭐ AUDIT : Enregistrer l'invitation
+            logAuditEvent('ADMIN_INVITE_SENT', $inviting_admin_id, ['invited_email' => $email]);
+
             jsonResponse(true, 'Invitation envoyée avec succès.');
         } else {
             // L'email a échoué, on prévient le client
@@ -331,7 +364,17 @@ function admin_register_complete() {
     $lastname = sanitizeInput(trim($input['lastname'] ?? ''));
     $password = $input['password'] ?? '';
 
-    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la politique de mot de passe ici aussi
+    // ⭐ SÉCURITÉ : Valider la longueur minimale du prénom et du nom côté serveur
+    if (strlen($firstname) < 2 || strlen($lastname) < 2) {
+        jsonResponse(false, 'Le prénom et le nom doivent contenir au moins 2 caractères.');
+    }
+
+    // ⭐ SÉCURITÉ RENFORCÉE : Valider la longueur du mot de passe avant la politique complexe
+    if (strlen($password) < 8) {
+        jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères.');
+    }
+
+    // ⭐ SÉCURITÉ : La politique de mot de passe est maintenant validée côté serveur.
     if (!validatePasswordPolicy($password)) {
         jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
     }
@@ -364,6 +407,9 @@ function admin_register_complete() {
         $deleteStmt = $db->prepare("DELETE FROM admin_invitations WHERE email_hash = ?");
         $deleteStmt->bind_param("s", $email_hash);
         $deleteStmt->execute();
+
+        // ⭐ AUDIT : Enregistrer la création du nouveau compte admin
+        logAuditEvent('ADMIN_ACCOUNT_CREATED', $stmt->insert_id, ['email' => decrypt($email_enc)]);
         jsonResponse(true, 'Compte admin créé avec succès. Vous pouvez maintenant vous connecter.');
     } else {
         jsonResponse(false, 'Erreur lors de la création du compte administrateur.');
@@ -371,6 +417,9 @@ function admin_register_complete() {
 }
 
 function request_password_reset() {
+    // ⭐ SÉCURITÉ : Limiter les demandes de réinitialisation (3 par heure par IP) pour éviter le spam.
+    checkRateLimit('password_reset_request', 3, 3600);
+
     $input = getInput();
     $email = trim($input['email'] ?? '');
 

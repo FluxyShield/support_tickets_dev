@@ -1,5 +1,16 @@
-# Configuration du serveur Apache pour le projet Support Ticketing
+# =================================================
+# RÈGLE DE SÉCURITÉ CRITIQUE
+# =================================================
+# Ce fichier empêche l'exécution de scripts (PHP, etc.) depuis ce dossier.
+# C'est une défense essentielle contre les attaques par téléversement de code malveillant (RCE).
 
-# Rediriger les erreurs 404 (Page non trouvée) vers notre page personnalisée.
-# Le chemin doit être relatif à la racine du site (localhost).
-ErrorDocument 404 /support_tickets/404.html
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|phar)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+<Files "cleanup.php">
+    Require all denied
+</Files>
+<Files "weekly_report.php">
+    Require all denied
+</Files>

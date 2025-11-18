@@ -1,7 +1,18 @@
 <?php
 /**
- * Configuration du Support Ticket System
- * ⭐ Version corrigée : compatibilité complète Office 365 / PHPMailer
+ * @file config.php
+ * @brief Fichier de configuration principal de l'application.
+ *
+ * Ce fichier est le cœur de la configuration du système de tickets. Il est responsable de :
+ * - L'initialisation des sessions avec des paramètres de sécurité.
+ * - Le chargement des dépendances via Composer.
+ * - La lecture des variables d'environnement depuis le fichier .env.
+ * - La définition des constantes de configuration (base de données, clés, URL).
+ * - La mise en place de la connexion à la base de données via une classe singleton (Database).
+ * - Le chargement des paramètres dynamiques de l'application depuis la base de données.
+ * - La configuration du système de logging (Monolog).
+ * - La fourniture de fonctions utilitaires globales : chiffrement/déchiffrement, hashing, envoi d'emails (PHPMailer),
+ *   gestion des en-têtes de sécurité (CSP, HSTS), et nettoyage des entrées.
  */
 
 if (!defined('ROOT_PATH')) {
@@ -11,7 +22,7 @@ function initialize_session() {
     if (session_status() === PHP_SESSION_NONE) {
         ini_set('session.cookie_httponly', 1);
         ini_set('session.use_only_cookies', 1);
-        ini_set('session.cookie_samesite', 'Strict');
+        ini_set('session.cookie_samesite', 'Lax'); // Lax est plus compatible avec les redirections externes
         session_start();
     }
 
@@ -22,64 +33,30 @@ function initialize_session() {
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
-// Charger Composer
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
-// Charger les variables d'environnement
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-// Configuration BDD
 define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_NAME', $_ENV['DB_NAME'] ?? 'support_tickets');
 define('DB_USER', $_ENV['DB_USER'] ?? 'root');
 define('DB_PASS', $_ENV['DB_PASS'] ?? '');
 define('DB_CHARSET', 'utf8mb4');
 
-if (empty($_ENV['ENCRYPTION_KEY'])) {
-    throw new Exception("ENCRYPTION_KEY manquante dans le fichier .env !");
-}
-define('ENCRYPTION_KEY', $_ENV['ENCRYPTION_KEY']);
-
+define('ENCRYPTION_KEY', $_ENV['ENCRYPTION_KEY'] ?? '');
 define('APP_URL_BASE', $_ENV['APP_URL'] ?? 'http://localhost/support_tickets');
 
-// Chargement dynamique des paramètres appli
-if (!defined('INSTALLING')) {
-    try {
-        $db_conn = Database::getInstance()->getConnection();
-        $result = $db_conn->query("SELECT setting_key, setting_value FROM settings");
-        $app_settings = [];
-        if ($result) {
-            while ($row = $result->fetch_assoc()) {
-                $app_settings[$row['setting_key']] = $row['setting_value'];
-            }
-        }
-
-        define('APP_NAME', $app_settings['app_name'] ?? 'Support Descamps');
-        define('APP_PRIMARY_COLOR', $app_settings['app_primary_color'] ?? '#EF8000');
-        $logo_filename = $app_settings['app_logo_url'] ?? 'logo.png';
-        define('APP_LOGO_URL', APP_URL_BASE . '/assets/' . $logo_filename);
-    } catch (Exception $e) {
-        define('APP_NAME', 'Support Descamps');
-        define('APP_LOGO_URL', APP_URL_BASE . '/assets/logo.png');
-    }
-} else {
-    define('APP_NAME', 'Support Descamps');
-    define('APP_LOGO_URL', APP_URL_BASE . '/assets/logo.png');
-}
-
-// Paramètres généraux
 define('ATTACHMENT_LIFETIME_DAYS', 90);
 define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOGIN_ATTEMPT_WINDOW_MINUTES', 15);
 define('LOGIN_LOCKOUT_TIME_MINUTES', 30);
 
-// ====================
-// CLASSE DATABASE
-// ====================
 class Database {
     private static $instance = null;
     private $connection;
@@ -139,9 +116,39 @@ class Database {
     }
 }
 
-// ====================
-// FONCTIONS GÉNÉRALES
-// ====================
+function loadAppSettings() {
+    if (defined('APP_NAME')) return;
+
+    try {
+        $db_conn = Database::getInstance()->getConnection();
+        $result = $db_conn->query("SELECT setting_key, setting_value FROM settings");
+        $_SESSION['app_settings'] = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $_SESSION['app_settings'][$row['setting_key']] = $row['setting_value'];
+            }
+        }
+        define('APP_NAME', $_SESSION['app_settings']['app_name'] ?? 'Support Descamps');
+        define('APP_LOGO_URL', APP_URL_BASE . '/assets/' . ($_SESSION['app_settings']['app_logo_url'] ?? 'logo.png'));
+    } catch (Exception $e) {
+        define('APP_NAME', 'Support Descamps');
+        define('APP_LOGO_URL', APP_URL_BASE . '/assets/logo.png');
+    }
+}
+
+class Log {
+    private static $logger;
+
+    public static function getLogger() {
+        if (!self::$logger) {
+            self::$logger = new Logger('app');
+            self::$logger->pushHandler(new StreamHandler(__DIR__ . '/logs/critical.log', Logger::CRITICAL));
+            self::$logger->pushHandler(new StreamHandler(__DIR__ . '/logs/app.log', Logger::INFO));
+        }
+        return self::$logger;
+    }
+}
+
 function encrypt($data) {
     if (empty($data)) return '';
     $cipher = "aes-256-cbc";
@@ -174,10 +181,24 @@ function hashData($data) {
 }
 
 function setSecurityHeaders() {
+    header_remove('X-Powered-By');
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
+
+    $csp = "default-src 'self'; ";
+    $csp .= "script-src 'self' https://cdn.jsdelivr.net/npm/apexcharts; ";
+    $csp .= "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ";
+    $csp .= "font-src 'self' https://fonts.gstatic.com; ";
+    $csp .= "img-src 'self' data:; ";
+    $csp .= "object-src 'none'; ";
+    $csp .= "frame-ancestors 'none'; ";
+    $csp .= "form-action 'self'; ";
+    $csp .= "base-uri 'self'; ";
+
+    header("Content-Security-Policy: " . $csp);
 }
 
 function setJsonHeaders() {
@@ -186,9 +207,6 @@ function setJsonHeaders() {
     setSecurityHeaders();
 }
 
-// ====================
-// ✅ NOUVELLE FONCTION D'ENVOI D'EMAIL (Office 365 compatible)
-// ====================
 function sendEmail($to, $subject, $body, $altBody = '') {
     if (empty($_ENV['MAIL_HOST'])) {
         error_log("Email non envoyé : MAIL_HOST n'est pas configuré.");
@@ -198,29 +216,25 @@ function sendEmail($to, $subject, $body, $altBody = '') {
     $mail = new PHPMailer(true);
 
     try {
-        // --- Configuration Office 365 ---
         $mail->isSMTP();
-        $mail->Host       = $_ENV['MAIL_HOST'];            // smtp.office365.com
-        $mail->SMTPAuth   = true;                          // ✅ Auth obligatoire
-        $mail->Username   = $_ENV['MAIL_USERNAME'];        // ex: mail@descamps-bois.fr
-        $mail->Password   = $_ENV['MAIL_PASSWORD'];        // mot de passe ou app password
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;// ✅ TLS
-        $mail->Port       = 587;                           // ✅ Port standard
+        $mail->Host       = $_ENV['MAIL_HOST'];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $_ENV['MAIL_USERNAME'];
+        $mail->Password   = $_ENV['MAIL_PASSWORD'];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
         $mail->CharSet    = 'UTF-8';
-        $mail->SMTPDebug  = 0; // passe à 2 pour debug détaillé
+        $mail->SMTPDebug  = 0;
         $mail->Debugoutput = 'error_log';
 
-        // --- Expéditeur & Destinataires ---
         $mail->setFrom($_ENV['MAIL_FROM_EMAIL'] ?? $_ENV['MAIL_USERNAME'], $_ENV['MAIL_FROM_NAME'] ?? 'Support Descamps');
         $mail->addAddress($to);
 
-        // --- Logo intégré ---
         $logoPath = __DIR__ . '/assets/logo.png';
         if (file_exists($logoPath)) {
             $mail->addEmbeddedImage($logoPath, 'logoimg');
         }
 
-        // --- Contenu HTML ---
         $fullBody = "
         <html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px;'>
             <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 12px;'>

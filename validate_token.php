@@ -19,6 +19,13 @@ if (empty($token)) {
     exit;
 }
 
+// ⭐ SÉCURITÉ RENFORCÉE : Valider le format du jeton avant de requêter la BDD.
+// Nos jetons font 64 caractères hexadécimaux.
+if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+    echo json_encode(['valid' => false]);
+    exit;
+}
+
 $db = Database::getInstance()->getConnection();
 
 $token_hash = hash('sha256', $token);

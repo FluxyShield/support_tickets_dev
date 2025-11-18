@@ -64,7 +64,20 @@ async function apiFetch(url, options = {}) {
         delete options.body;
     }
 
-    return fetch(url, options);
+    const response = await fetch(url, options);
+
+    // ⭐ NOUVEAU : Détection de session invalide/expirée
+    // On ne peut pas lire le JSON si la réponse est vide (ex: téléchargement de fichier)
+    if (response.headers.get("content-type")?.includes("application/json")) {
+        const data = await response.json();
+        if (!data.success && (data.message === 'Authentification requise' || data.message === 'Authentification admin requise')) {
+            console.warn('Session invalide ou expirée détectée via API. Rechargement de la page...');
+            window.location.reload(); // Force un rechargement complet de la page
+            throw new Error('Session expirée, rechargement de la page.');
+        }
+        return { ...response, json: () => Promise.resolve(data) }; // Retourne une réponse compatible
+    }
+    return response;
 }
 
 // ==========================================
@@ -535,8 +548,8 @@ function renderTickets() {
     tbody.innerHTML = tickets.map(t => { 
         const unread = t.messages.filter(m => m.is_read === 0 && m.author_role === 'user').length;
         
-        let assignedAdmin = null;
-        if (t.assigned_to) {
+        let assignedAdmin = null; // Correction: initialisation
+        if (t.assigned_to && adminsList) { // Correction: s'assurer que adminsList est chargé
             assignedAdmin = adminsList.find(a => a.id === t.assigned_to);
         }
         
@@ -544,18 +557,18 @@ function renderTickets() {
             <tr class="${unread > 0 ? 'ticket-row-unread' : ''}" style="${unread > 0 ? 'background:rgba(239,128,0,0.05);' : ''}">
                 <td><strong>#${escapeHTML(t.id)}</strong></td>
                 <td>${escapeHTML(t.name)}<br><small style="color:var(--gray-600);">${escapeHTML(t.email)}</small></td>
-                <td>${escapeHTML(t.subject)} ${unread > 0 ? `<span class="badge badge-high">${unread}</span>` : ''}</td>
+                <td>${escapeHTML(t.subject)} ${unread > 0 ? `<span class="badge badge-high">${escapeHTML(unread)}</span>` : ''}</td>
                 <td>${escapeHTML(t.category)}</td>
-                <td><span class="badge badge-${t.priority === 'Haute' ? 'high' : t.priority === 'Moyenne' ? 'medium' : 'low'}">${t.priority}</span></td>
+                <td><span class="badge badge-${t.priority === 'Haute' ? 'high' : t.priority === 'Moyenne' ? 'medium' : 'low'}">${escapeHTML(t.priority)}</span></td>
                 
                 <td>
                     ${assignedAdmin ? 
-                        `<span class="badge badge-assigned" style="background:var(--gray-200);color:var(--gray-700);">${assignedAdmin.firstname}</span>` : 
+                        `<span class="badge badge-assigned" style="background:var(--gray-200);color:var(--gray-700);">${escapeHTML(assignedAdmin.firstname)}</span>` : 
                         `<span style="color:var(--gray-400);">Non assigné</span>`
                     }
                 </td>
                 
-                <td><span class="badge badge-${t.status === 'Ouvert' ? 'open' : t.status === 'En cours' ? 'in-progress' : 'closed'}">${t.status}</span></td>
+                <td><span class="badge badge-${t.status === 'Ouvert' ? 'open' : t.status === 'En cours' ? 'in-progress' : 'closed'}">${escapeHTML(t.status)}</span></td>
                 <td>${escapeHTML(t.date)}</td>
                 
                 <td>
@@ -745,7 +758,7 @@ async function viewTicket(id) {
                 ticket.messages.map(m => `
                     <div class="message ${m.author_role === 'admin' ? 'message-admin' : (m.author_role === 'user' ? 'message-user' : 'message-system')}">
                         <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
-                        <p style="margin-top:5px;">${m.text}</p>
+                        <p style="margin-top:5px;">${escapeHTML(m.text)}</p>
                     </div>
                 `).join('')
             }
@@ -874,7 +887,7 @@ function renderAdminList() {
     return adminsList.map(admin => `
         <div class="canned-item">
             <div class="canned-item-info">
-                <strong>${admin.fullname}</strong>
+                <strong>${escapeHTML(admin.fullname)}</strong>
             </div>
             ${admin.id == adminId ? 
                 '<button class="btn btn-secondary btn-small" disabled>Vous</button>' : 
@@ -971,8 +984,8 @@ function renderCannedList() {
     return cannedResponses.map(r => `
         <div class="canned-item">
             <div class="canned-item-info">
-                <strong>${r.title}</strong>
-                <p>${r.content.substring(0, 100)}...</p>
+                <strong>${escapeHTML(r.title)}</strong>
+                <p>${escapeHTML(r.content.substring(0, 100))}...</p>
             </div>
             <button class="btn btn-danger btn-small" onclick="deleteCannedResponse(${r.id})">Supprimer</button>
         </div>
@@ -1060,11 +1073,11 @@ async function renderGeneralSettings() {
                     <div id="settingsMessages"></div>
                     <div class="form-group">
                         <label for="appName">Nom de l'application</label>
-                        <input type="text" id="appName" value="${settings.app_name || ''}" class="form-control">
+                        <input type="text" id="appName" value="${escapeHTML(settings.app_name) || ''}" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="appPrimaryColor">Couleur principale</label>
-                        <input type="color" id="appPrimaryColor" value="${settings.app_primary_color || '#EF8000'}" class="form-control" style="padding: 5px; height: 48px;">
+                        <input type="color" id="appPrimaryColor" value="${escapeHTML(settings.app_primary_color) || '#EF8000'}" class="form-control" style="padding: 5px; height: 48px;">
                     </div>
                     <div class="form-group">
                         <label>Logo de l'application</label>
@@ -1142,7 +1155,7 @@ function renderAssignmentUI(ticket) {
                 ${assignedAdmin ? `<button class="btn btn-secondary" onclick="unassignTicket(${ticket.id})">Désassigner</button>` : ''}
             </div>
         </div>
-        ${assignedAdmin ? `<small style="color:var(--gray-600);margin-top:10px;display:block;">Assigné à ${assignedAdmin.fullname} ${ticket.assigned_at ? 'le ' + new Date(ticket.assigned_at).toLocaleDateString('fr-FR') : ''}</small>` : ''}
+        ${assignedAdmin ? `<small style="color:var(--gray-600);margin-top:10px;display:block;">Assigné à ${escapeHTML(assignedAdmin.fullname)} ${ticket.assigned_at ? 'le ' + new Date(ticket.assigned_at).toLocaleDateString('fr-FR') : ''}</small>` : ''}
     `;
     return html;
 }
@@ -1256,7 +1269,9 @@ async function deleteFile(fileId, ticketId) {
     if (!confirm('Supprimer ce fichier ?')) return;
     const res = await apiFetch('api.php?action=ticket_delete_file', {
         method: 'POST',
-        body: { file_id: fileId }
+        // ⭐ SÉCURITÉ : Envoyer l'ID du ticket avec l'ID du fichier
+        // pour que le serveur puisse valider que le fichier appartient bien au ticket.
+        body: { file_id: fileId, ticket_id: ticketId }
     });
     const data = await res.json();
     if (data.success) {

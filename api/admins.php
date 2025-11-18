@@ -49,6 +49,12 @@ function assign_ticket() {
     $stmt->bind_param("ii", $admin_id, $ticket_id);
 
     if ($stmt->execute()) {
+        // ⭐ AUDIT : Enregistrer l'assignation
+        logAuditEvent('TICKET_ASSIGN', $ticket_id, [
+            'assigned_to_admin_id' => $admin_id,
+            'assigned_by_admin_id' => $_SESSION['admin_id']
+        ]);
+
         // Optionnel : ajouter un message système dans le ticket
         $target_admin_stmt = $db->prepare("SELECT firstname_encrypted, lastname_encrypted, email_encrypted FROM users WHERE id = ?");
         $target_admin_stmt->bind_param("i", $admin_id);
@@ -120,6 +126,9 @@ function unassign_ticket() {
     $stmt->bind_param("i", $ticket_id);
 
     if ($stmt->execute()) {
+        // ⭐ AUDIT : Enregistrer la désassignation
+        logAuditEvent('TICKET_UNASSIGN', $ticket_id);
+
         jsonResponse(true, 'Ticket désassigné avec succès.');
     } else {
         jsonResponse(false, 'Erreur lors de la désassignation.');

@@ -1,14 +1,15 @@
 /**
- * Système de Visualisation de Fichiers Enrichi
- * Support Ticketing System - File Viewer
+ * @file file-viewer-system.js
+ * @brief Classe pour gérer la visualisation de fichiers joints.
  * 
- * Fonctionnalités :
- * - Prévisualisation d'images (PNG, JPG, JPEG)
- * - Visualisateur PDF intégré
- * - Modal plein écran avec zoom
- * - Navigation entre fichiers
- * - Téléchargement sécurisé
- * - Galerie avec miniatures
+ * Cette classe fournit une interface modale complète pour visualiser les fichiers
+ * attachés à un ticket. Elle gère :
+ * - L'injection dynamique du HTML et des styles de la modale.
+ * - L'affichage des images avec des contrôles de zoom.
+ * - L'intégration d'un visualisateur pour les fichiers PDF.
+ * - La navigation (précédent/suivant) entre les fichiers d'un même ticket.
+ * - L'affichage d'une galerie de miniatures pour une sélection rapide.
+ * - Le téléchargement des fichiers.
  */
 
 class FileViewerSystem {

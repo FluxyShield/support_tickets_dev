@@ -9,7 +9,7 @@ composer.phar
 
 # Uploads (fichiers utilisateurs)
 uploads/
-
+certs/
 # Logs
 logs/
 *.log

@@ -93,6 +93,89 @@ function message_create() {
             }
         }
 
+        // --- NOUVEAU : Notification à l'utilisateur lors d'une réponse admin ---
+        if ($author_role === 'admin') {
+            // 1. Récupérer les informations du ticket et de l'utilisateur
+            $info_stmt = $db->prepare("
+                SELECT 
+                    t.subject_encrypted, 
+                    u.email_encrypted, 
+                    u.firstname_encrypted 
+                FROM tickets t 
+                JOIN users u ON t.user_id = u.id 
+                WHERE t.id = ?
+            ");
+            $info_stmt->bind_param("i", $ticket_id);
+            $info_stmt->execute();
+            $ticket_info = $info_stmt->get_result()->fetch_assoc();
+
+            if ($ticket_info) {
+                $user_email = decrypt($ticket_info['email_encrypted']);
+                $user_firstname = decrypt($ticket_info['firstname_encrypted']);
+                $ticket_subject = decrypt($ticket_info['subject_encrypted']);
+                $ticket_link = APP_URL_BASE . '/ticket_details.php?id=' . $ticket_id;
+
+                $email_subject = "[Ticket #{$ticket_id}] Nouvelle réponse d'un administrateur";
+                $email_body = "
+                    <h2 style='color: #4A4A49;'>Nouvelle réponse sur votre ticket</h2>
+                    <p>Bonjour " . htmlspecialchars($user_firstname) . ",</p>
+                    <p>Un administrateur a répondu à votre ticket <strong>#{$ticket_id} - " . htmlspecialchars($ticket_subject) . "</strong>.</p>
+                    <p><strong>Message de " . htmlspecialchars($author_name) . " :</strong></p>
+                    <blockquote style='border-left: 4px solid #ccc; padding-left: 15px; margin-left: 0; font-style: italic;'>" . nl2br(htmlspecialchars($message)) . "</blockquote>
+                    <p style='text-align: center; margin: 30px 0;'><a href='{$ticket_link}' style='background: #EF8000; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Voir la réponse</a></p>
+                ";
+                sendEmail($user_email, $email_subject, $email_body);
+            }
+        }
+
+        // --- NOUVEAU : Notification à l'admin lors d'une réponse utilisateur ---
+        if ($author_role === 'user') {
+            $ticket_info_stmt = $db->prepare("SELECT subject_encrypted, assigned_to FROM tickets WHERE id = ?");
+            $ticket_info_stmt->bind_param("i", $ticket_id);
+            $ticket_info_stmt->execute();
+            $ticket_info = $ticket_info_stmt->get_result()->fetch_assoc();
+
+            if ($ticket_info) {
+                $admin_to_notify_id = $ticket_info['assigned_to']; // Peut être NULL
+                $ticket_subject = decrypt($ticket_info['subject_encrypted']);
+                
+                $admin_email_stmt = $db->prepare("SELECT email_encrypted FROM users WHERE id = ? AND role = 'admin'");
+                $admin_email_stmt->bind_param("i", $admin_to_notify_id);
+                $admin_email_stmt->execute();
+                $admin_data = $admin_email_stmt->get_result()->fetch_assoc();
+
+                $email_subject = "Nouvelle réponse sur le ticket #{$ticket_id}";
+                $admin_ticket_link = APP_URL_BASE . '/admin.php#ticket-' . $ticket_id;
+                $email_body = "
+                    <p>L'utilisateur a répondu au ticket <strong>#{$ticket_id} - " . htmlspecialchars($ticket_subject) . "</strong>.</p>
+                    <p><strong>Message :</strong></p>
+                    <blockquote style='border-left: 4px solid #ccc; padding-left: 15px; margin-left: 0;'>" . nl2br(htmlspecialchars($message)) . "</blockquote>
+                    <p style='text-align: center; margin: 30px 0;'><a href='{$admin_ticket_link}' style='background: #4A4A49; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Voir la réponse</a></p>
+                ";
+
+                if ($admin_data) {
+                    // Cas 1 : Le ticket est assigné, on notifie l'admin concerné
+                    $admin_email = decrypt($admin_data['email_encrypted']);
+                    if ($admin_email) {
+                        sendEmail($admin_email, $email_subject, $email_body);
+                    }
+                } else {
+                    // Cas 2 : Le ticket n'est pas assigné, on notifie TOUS les admins
+                    $all_admins_stmt = $db->prepare("SELECT email_encrypted FROM users WHERE role = 'admin'");
+                    $all_admins_stmt->execute();
+                    $admins_result = $all_admins_stmt->get_result();
+                    
+                    while ($admin = $admins_result->fetch_assoc()) {
+                        $admin_email = decrypt($admin['email_encrypted']);
+                        if ($admin_email) {
+                            sendEmail($admin_email, $email_subject, $email_body);
+                        }
+                    }
+                }
+            }
+        }
+        // --- FIN DE LA NOTIFICATION ---
+
         jsonResponse(true, 'Message envoyé avec succès.');
     } else {
         jsonResponse(false, 'Erreur lors de l\'envoi du message.');

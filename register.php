@@ -190,10 +190,6 @@ async function register(e) {
         }
 
         if (data.success) {
-            localStorage.setItem('firstname', data.user.firstname);
-            localStorage.setItem('lastname', data.user.lastname);
-            localStorage.setItem('email', data.user.email);
-            localStorage.setItem('user_id', data.user.id);
             showSuccessAnimation();
         } else {
             showError(data.message);

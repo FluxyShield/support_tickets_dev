@@ -1,15 +1,13 @@
 <?php
 /**
- * Script d'installation automatique
- * Support Ticket System
- * ⭐ MIS À JOUR : 
- * - Ajout du 'author_role' = 'system'
- * - Ajout de 'closed_at' à la table tickets
- * - Ajout de la table 'admin_invitations'
- * - ⭐ AJOUT : Import et utilisation de la police Source Sans Pro
+ * @file install.php
+ * @brief Script d'installation de la base de données pour le système de tickets de support.
+ *
+ * Ce script gère l'installation complète de l'application. Il se connecte à la base de données,
+ * supprime les tables existantes pour garantir une installation propre, puis crée l'ensemble du
+ * schéma de base de données (tables, index, clés étrangères). Il insère également les données
+ * initiales nécessaires, comme le compte super-administrateur et les paramètres par défaut.
  */
-
-// ⭐ CORRECTION : Définir une constante pour indiquer que nous sommes en mode installation.
 define('ROOT_PATH', __DIR__);
 define('INSTALLING', true);
 
@@ -32,8 +30,7 @@ require_once 'config.php';
         .step.error { background: #fee2e2; color: #991b1b; }
         .step.info { background: var(--gray-100); color: var(--gray-700); }
         .btn { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, var(--gray-medium) 0%, var(--gray-dark) 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; text-decoration: none; text-align: center; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74, 74, 73, 0.4); }
-        /* Styles pour le bloc d'optimisation ajouté */
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74, 74, 73, 0.4); }        
         :root {
             --gray-50: #F9F9F9;
             --gray-600: #7C7C7B;
@@ -60,8 +57,9 @@ require_once 'config.php';
             $db->query("DROP TABLE IF EXISTS settings");
             $db->query("DROP TABLE IF EXISTS password_resets");
             $db->query("DROP TABLE IF EXISTS admin_invitations");
+            $db->query("DROP TABLE IF EXISTS audit_log");
             $db->query("DROP TABLE IF EXISTS canned_responses");
-            $db->query("DROP TABLE IF EXISTS login_attempts"); /* ⭐ AJOUT : Table pour les tentatives de connexion */
+            $db->query("DROP TABLE IF EXISTS login_attempts");
             $db->query("DROP TABLE IF EXISTS ticket_reviews");
             $db->query("DROP TABLE IF EXISTS ticket_files");
             $db->query("DROP TABLE IF EXISTS email_logs");
@@ -73,7 +71,6 @@ require_once 'config.php';
             echo '<div class="step success">✅ Anciennes tables supprimées</div>';
             echo '<div class="step info">📦 Création des nouvelles tables...</div>';
             
-            // Table users
             $sql_users = "CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 firstname_encrypted VARCHAR(512) NOT NULL,
@@ -89,7 +86,6 @@ require_once 'config.php';
             $db->query($sql_users);
             echo '<div class="step success">✅ Table "users" créée</div>';
             
-            // Table tickets
             $sql_tickets = "CREATE TABLE IF NOT EXISTS tickets (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL,
@@ -116,7 +112,6 @@ require_once 'config.php';
             $db->query($sql_tickets);
             echo '<div class="step success">✅ Table "tickets" (avec closed_at) créée</div>';
             
-            // Table messages
             $sql_messages = "CREATE TABLE IF NOT EXISTS messages (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 ticket_id INT NOT NULL,
@@ -137,7 +132,6 @@ require_once 'config.php';
                 echo '<div class="step success">✅ Table "messages" (chiffrée + rôle system) créée</div>';
             }
             
-            // Table ticket_files
             $sql_files = "CREATE TABLE IF NOT EXISTS ticket_files (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 ticket_id INT NOT NULL,
@@ -153,7 +147,6 @@ require_once 'config.php';
             $db->query($sql_files);
             echo '<div class="step success">✅ Table "ticket_files" (chiffrée) créée</div>';
             
-            // Table email_logs
             $sql_emails = "CREATE TABLE IF NOT EXISTS email_logs (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 ticket_id INT NOT NULL,
@@ -168,7 +161,6 @@ require_once 'config.php';
             $db->query($sql_emails);
             echo '<div class="step success">✅ Table "email_logs" créée</div>';
             
-            // Table ticket_reviews
             $sql_reviews = "CREATE TABLE IF NOT EXISTS ticket_reviews (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 ticket_id INT NOT NULL UNIQUE,
@@ -182,7 +174,6 @@ require_once 'config.php';
             $db->query($sql_reviews);
             echo '<div class="step success">✅ Table "ticket_reviews" créée</div>';
             
-            // Table canned_responses
             $sql_canned = "CREATE TABLE IF NOT EXISTS canned_responses (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 title_encrypted VARCHAR(512) NOT NULL,
@@ -192,7 +183,6 @@ require_once 'config.php';
             $db->query($sql_canned);
             echo '<div class="step success">✅ Table "canned_responses" créée</div>';
             
-            // ⭐ NOUVELLE TABLE POUR LES INVITATIONS ADMIN
             $sql_invites = "CREATE TABLE IF NOT EXISTS admin_invitations (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 email_encrypted VARCHAR(512) NOT NULL,
@@ -206,7 +196,6 @@ require_once 'config.php';
             $db->query($sql_invites);
             echo '<div class="step success">✅ Table "admin_invitations" créée</div>';
             
-            // ⭐ NOUVELLE TABLE POUR LA RÉINITIALISATION DES MOTS DE PASSE
             $sql_resets = "CREATE TABLE IF NOT EXISTS password_resets (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 email_hash VARCHAR(255) NOT NULL,
@@ -219,7 +208,6 @@ require_once 'config.php';
             $db->query($sql_resets);
             echo '<div class="step success">✅ Table "password_resets" créée</div>';
 
-            // ⭐ NOUVELLE TABLE POUR LES TENTATIVES DE CONNEXION
             $sql_login_attempts = "CREATE TABLE `login_attempts` (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,
                 `ip_address` VARCHAR(45) NOT NULL,
@@ -233,7 +221,6 @@ require_once 'config.php';
             $db->query($sql_login_attempts);
             echo '<div class="step success">✅ Table "login_attempts" créée</div>';
 
-            // ⭐ NOUVELLE TABLE POUR LES PARAMÈTRES DE L'APPLICATION
             $sql_settings = "CREATE TABLE IF NOT EXISTS settings (
                 setting_key VARCHAR(50) NOT NULL PRIMARY KEY,
                 setting_value TEXT
@@ -241,14 +228,26 @@ require_once 'config.php';
             $db->query($sql_settings);
             echo '<div class="step success">✅ Table "settings" créée</div>';
 
-            // Insérer les valeurs par défaut
             $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('app_name', 'Support Descamps')");
             $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('app_primary_color', '#EF8000')");
             $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('app_logo_url', 'logo.png')");
             echo '<div class="step info">🔧 Paramètres par défaut insérés</div>';
 
+            $sql_audit = "CREATE TABLE IF NOT EXISTS `audit_log` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `admin_id` int(11) DEFAULT NULL,
+                `action` varchar(255) NOT NULL,
+                `target_id` int(11) DEFAULT NULL,
+                `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details`)),
+                `ip_address` varchar(45) DEFAULT NULL,
+                `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+                PRIMARY KEY (`id`),
+                KEY `admin_id` (`admin_id`),
+                KEY `action` (`action`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+            $db->query($sql_audit);
+            echo '<div class="step success">✅ Table "audit_log" créée</div>';
 
-            // Table ticket_assignments
             $sql_assign = "CREATE TABLE ticket_assignments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 ticket_id INT NOT NULL,
@@ -265,54 +264,44 @@ require_once 'config.php';
             $db->query($sql_assign);
             echo '<div class="step success">✅ Table "ticket_assignments" créée</div>';
 
-            
-            // === BLOC PHP AJOUTÉ ===
-            // === CRÉATION DES INDEX OPTIMISÉS ===
             echo '<div class="step info">🔧 Création des index pour optimiser les performances...</div>';
             try {
-                // Tickets : Pour les requêtes d'admin avec filtres
                 $db->query("
                     CREATE INDEX idx_tickets_user_status 
                     ON tickets(user_id, status, created_at DESC)
                 ");
                 echo '<div class="step success">✅ Index tickets (user + status) créé</div>';
                 
-                // Tickets : Pour l'assignation admin
                 $db->query("
                     CREATE INDEX idx_tickets_assigned_status 
                     ON tickets(assigned_to, status, created_at DESC)
                 ");
                 echo '<div class="step success">✅ Index tickets (assignation) créé</div>';
                 
-                // Messages : Pour charger les messages d'un ticket
                 $db->query("
                     CREATE INDEX idx_messages_ticket_created 
                     ON messages(ticket_id, created_at ASC)
                 ");
                 echo '<div class="step success">✅ Index messages créé</div>';
                 
-                // Messages : Pour compter les non-lus
                 $db->query("
                     CREATE INDEX idx_messages_ticket_unread 
                     ON messages(ticket_id, is_read, author_role)
                 ");
                 echo '<div class="step success">✅ Index messages non-lus créé</div>';
                 
-                // Fichiers : Pour charger les fichiers d'un ticket
                 $db->query("
                     CREATE INDEX idx_files_ticket 
                     ON ticket_files(ticket_id, created_at DESC)
                 ");
                 echo '<div class="step success">✅ Index fichiers créé</div>';
                 
-                // Avis : Pour récupérer l'avis d'un ticket
                 $db->query("
                     CREATE INDEX idx_reviews_ticket 
                     ON ticket_reviews(ticket_id)
                 ");
                 echo '<div class="step success">✅ Index avis créé</div>';
                 
-                // Analyse des tables pour mise à jour des statistiques
                 echo '<div class="step info">📊 Analyse des tables...</div>';
                 $db->query("ANALYZE TABLE tickets");
                 $db->query("ANALYZE TABLE messages");
@@ -321,7 +310,6 @@ require_once 'config.php';
                     
                 echo '<div class="step success">✅ Optimisation terminée - Base de données prête</div>';
                 
-                // Afficher les statistiques
                 $result = $db->query("
                     SELECT 
                         COUNT(*) as index_count,
@@ -339,17 +327,14 @@ require_once 'config.php';
                 echo '<div class="step info">Raison : ' . htmlspecialchars($e->getMessage()) . '</div>';
                 echo '<div class="step info">💡 L\'application fonctionnera mais les performances seront réduites</div>';
             }
-            // === FIN DU BLOC PHP AJOUTÉ ===
-
 
             $db->query("SET FOREIGN_KEY_CHECKS = 1");
             
-            // Création du Super Admin
             echo '<div class="step info">👤 Création du Super Admin...</div>';
-            $admin_firstname = 'Admin';
-            $admin_lastname = 'Super';
-            $admin_email = 'admin@descamps.com';
-            $admin_password = 'Password123!'; 
+            $admin_firstname = 'Super';
+            $admin_lastname = 'Admin';
+            $admin_email = 'support-it@descamps-bois.fr';
+            $admin_password = '@Desc@mps2025!'; 
             $email_hash = hashData($admin_email);
             $firstname_enc = encrypt($admin_firstname);
             $lastname_enc = encrypt($admin_lastname);
@@ -365,7 +350,6 @@ require_once 'config.php';
                 echo '<div class="step error">❌ Erreur lors de la création du Super Admin.</div>';
             }
             
-            // Création du dossier Uploads
             $upload_dir = __DIR__ . '/uploads';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
@@ -381,20 +365,5 @@ require_once 'config.php';
             echo '<div class="step info">💡 Vérifie que la base de données "support_tickets" existe</div>';
         }
         ?>
-        
-        <div style="margin-top:30px;padding:20px;background:var(--gray-50);border-radius:12px;border-left:4px solid var(--orange);">
-            <h3 style="margin-bottom:15px;">🚀 Optimisation Supplémentaire (Optionnel)</h3>
-            <p style="margin-bottom:10px;">Pour de meilleures performances sur de gros volumes :</p>
-            <ol>
-                <li style="margin:10px 0;">Exécutez le fichier <code>database-indexes.sql</code> manuellement</li>
-                <li style="margin:10px 0;">Activez le cache de requêtes MySQL : <code>query_cache_type = 1</code></li>
-                <li style="margin:10px 0;">Augmentez <code>innodb_buffer_pool_size</code> (50-80% de la RAM)</li>
-                <li style="margin:10px 0;">Installez un cache Redis/Memcached pour les sessions</li>
-            </ol>
-            <p style="margin-top:15px;font-size:13px;color:var(--gray-600);">
-                📖 Plus d'infos : <a href="https://dev.mysql.com/doc/refman/8.0/en/optimization.html" target="_blank">Documentation MySQL</a>
-            </p>
-        </div>
-        </div>
 </body>
 </html>

@@ -65,7 +65,7 @@ echo "Trouvé " . $result->num_rows . " fichier(s) à supprimer...\n\n";
 // 2. Parcourir et supprimer chaque fichier
 while ($file = $result->fetch_assoc()) {
     $decryptedFilename = decrypt($file['filename_encrypted']);
-    $filepath = __DIR__ . '/uploads/' . $decryptedFilename;
+    $filepath = dirname(__DIR__, 3) . '/secure_uploads/' . $decryptedFilename; // Utiliser le chemin sécurisé
 
     // Supprimer le fichier physique
     if (file_exists($filepath)) {

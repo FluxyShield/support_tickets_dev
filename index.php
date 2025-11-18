@@ -1,28 +1,36 @@
+<?php
+/**
+ * @file index.php
+ * @brief Page d'accueil principale pour les utilisateurs du système de support.
+ *
+ * Cette page est le point d'entrée pour les utilisateurs. Elle gère deux états :
+ * 1. Vue "invité" : Affiche les options pour se connecter ou s'inscrire.
+ * 2. Vue "connecté" : Affiche la liste des tickets de l'utilisateur, permet la création
+ *    de nouveaux tickets et l'interaction avec les tickets existants (voir détails,
+ *    ajouter des messages, etc.).
+ *
+ * La page est construite comme une Single Page Application (SPA) partielle, où la plupart
+ * des interactions (connexion, affichage des tickets, envoi de messages) sont gérées
+ * de manière asynchrone via des appels API en JavaScript (fetch) sans rechargement complet.
+ */
+define('ROOT_PATH', __DIR__);
+require_once 'config.php';
+session_name('user_session');
+initialize_session();
+setSecurityHeaders();
+$isUserLoggedIn = isset($_SESSION['user_id']);
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <?php
-        // ⭐ CORRECTION SÉCURITÉ : Définir ROOT_PATH avant d'inclure config.php
-        define('ROOT_PATH', __DIR__);
-    ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php
-        require_once 'config.php';
-        session_name('user_session'); // ⭐ SOLUTION : Nom de session unique pour l'utilisateur
-        initialize_session();
-    ?>
-    <!-- Jeton CSRF généré de manière fiable -->
     <meta name="csrf-token" content="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-    <?php session_write_close(); ?>
 
     <link rel="stylesheet" href="style.css">
     <title>Support Descamps - Accueil</title>
     <style>
-        /* ========================================
-           STYLES POUR LES ANIMATIONS ET MODALS
-           (Section corrigée)
-           ======================================== */
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -65,10 +73,6 @@
 
         .overlay.active { display: block; }
         
-        /* ========================================
-           STYLES POUR LES AVIS (ÉTOILES)
-           ======================================== */
-
         .rating-stars {
             display: flex; flex-direction: row-reverse; 
             justify-content: center; gap: 10px; margin-bottom: 20px;
@@ -105,7 +109,7 @@
             </div>
         </div>
         <div class="content">
-            <div id="guestSection" style="text-align:center;">
+            <div id="guestSection" style="text-align:center; <?php if ($isUserLoggedIn) echo 'display:none;'; ?>">
                 <h2 style="color:var(--gray-900);margin-bottom:20px;">Bienvenue sur le Support Descamps</h2>
                 <p style="color:var(--gray-600);margin-bottom:30px;">Connectez-vous pour créer et gérer vos tickets</p>
                 <div style="display:flex;gap:15px;justify-content:center;">
@@ -113,7 +117,7 @@
                     <button class="btn btn-secondary" onclick="showLoginModal()">Se connecter</button>
                 </div>
             </div>
-            <div id="userSection" style="display:none;">
+            <div id="userSection" style="<?php if (!$isUserLoggedIn) echo 'display:none;'; ?>">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;">
                     <h2 id="welcomeMsg" style="color:var(--gray-900);"></h2>
                     <button class="btn btn-success" onclick="showCreateTicketModal()">+ Nouveau Ticket</button>
@@ -131,7 +135,6 @@
                 <h3>Connexion</h3>
                 <button class="close-modal" onclick="closeLoginModal()">&times;</button>
             </div>
-            <!-- ⭐ AJOUT : Conteneur pour les messages d'erreur -->
             <div id="loginErrorMsg" class="error-message" style="display:none; margin-bottom: 15px;"></div>
 
             <form onsubmit="login(event)">
@@ -255,7 +258,6 @@
         </div>
     </div>
 
-    <!-- ⭐ NOUVEAU : Modal de confirmation pour la réouverture d'un ticket -->
     <div id="reopenTicketModal" class="modal">
         <div class="modal-content" style="max-width:450px; text-align:center;">
             <div class="modal-header">
@@ -265,22 +267,18 @@
             <p style="margin: 20px 0; font-size: 16px;">Êtes-vous sûr de vouloir réouvrir ce ticket ? Un message sera ajouté pour notifier l'équipe de support.</p>
             <div style="display:flex; gap:15px; justify-content:center; margin-top:20px;">
                 <button class="btn btn-secondary" onclick="closeReopenTicketModal()">Annuler</button>
-                <!-- L'ID du ticket sera ajouté dynamiquement ici -->
                 <button id="confirmReopenBtn" class="btn btn-success" onclick="confirmReopenTicket()">Confirmer</button> 
             </div>
         </div>
     </div>
 
-    <!-- ⭐ CORRECTION : Inclure le script pour le drag & drop -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="js/drag-drop-upload.js"></script>
     <script src="js/file-viewer-system.js"></script>
     <script>
         let tickets = [];
         let currentUser = null;
 
-        // ==========================================
-        // ⭐ AMÉLIORATION SÉCURITÉ : FETCH AVEC CSRF
-        // ==========================================
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         async function apiFetch(url, options = {}) {
@@ -296,78 +294,64 @@
                 delete options.body;
             }
 
-            return fetch(url, options);
+            const response = await fetch(url, options);
+
+            if (response.headers.get("content-type")?.includes("application/json")) {
+                const data = await response.json();
+                if (!data.success && (data.message === 'Authentification requise' || data.message === 'Authentification admin requise')) {
+                    console.warn('Session invalide ou expirée détectée via API. Rechargement de la page...');
+                    window.location.reload(); // Force un rechargement complet de la page
+                    throw new Error('Session expirée, rechargement de la page.');
+                }
+                return { ...response, json: () => Promise.resolve(data) }; // Retourne une réponse compatible
+            }
+            return response;
         }
-        // ==========================================
         
         checkSession();
 
-        
-        // ⭐ NOUVELLE FONCTION HELPER
         /**
          * Vérifie si un timestamp (string) est dans les dernières 24 heures
          * @param {string} closedAt - Le timestamp de fermeture (ex: "2023-10-27 14:30:00")
          */
         function isReopenable(closedAt) {
             if (!closedAt) return false;
-            
-            // Correction pour s'assurer que le timestamp est bien interprété
             const closedDate = new Date(closedAt.replace(' ', 'T')); 
             const now = new Date();
-            
-            // Calculer la différence en millisecondes
             const diffInMs = now - closedDate;
-            
-            // Convertir 24 heures en millisecondes
-            //const hours24 = 24 * 60 * 60 * 1000;
-            const hours24 = 0; // Pour tester facilement
-            
-            // Vrai si la différence est inférieure ou égale à 24h
+            const hours24 = 24 * 60 * 60 * 1000;
             return diffInMs <= hours24;
         }
         
         function checkSession() {
-            const firstname = localStorage.getItem('firstname');
-            const lastname = localStorage.getItem('lastname');
-            const email = localStorage.getItem('email');
-            if (firstname && lastname && email) {
-                currentUser = { firstname, lastname, email };
-                document.getElementById('guestSection').style.display = 'none';
-                document.getElementById('userSection').style.display = 'block';
+            const isUserLoggedIn = <?php echo json_encode($isUserLoggedIn); ?>;
+            if (isUserLoggedIn) {
                 document.getElementById('logoutBtn').style.display = 'block';
-                document.getElementById('welcomeMsg').textContent = `Bonjour ${firstname} ${lastname} !`;
                 loadTickets();
             }
         }
         
         async function login(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginErrorMsg');
-
-            // Cacher l'ancien message d'erreur
             errorDiv.style.display = 'none';
 
             const res = await apiFetch('api.php?action=login', { method: 'POST', body: { email, password } });
             const data = await res.json();
 
             if (data.success) {
-                localStorage.setItem('firstname', data.user.firstname);
-                localStorage.setItem('lastname', data.user.lastname);
-                localStorage.setItem('email', data.user.email);
-                localStorage.setItem('user_id', data.user.id);
                 location.reload();
             } else {
-                // ⭐ CORRECTION : Afficher l'erreur dans la div dédiée au lieu d'une alerte
                 errorDiv.textContent = '❌ ' + data.message;
                 errorDiv.style.display = 'block';
             }
         }
         
         function logout() {
-            localStorage.clear();
-            location.reload();
+            apiFetch('api.php?action=logout', { method: 'POST' })
+                .finally(() => {
+                    location.reload();
+                });
         }
         
         async function loadTickets() {
@@ -375,14 +359,16 @@
             const data = await res.json();
             if (data.success) {
                 tickets = data.tickets;
+                if (data.user) {
+                    document.getElementById('welcomeMsg').textContent = `Bonjour ${escapeHTML(data.user.firstname)} ${escapeHTML(data.user.lastname)} !`;
+                }
                 renderTickets();
-                // ⭐ SOLUTION : Mettre à jour le modal s'il est ouvert
                 updateModalIfOpen();
             }
         }
         
         /**
-         * ⭐ NOUVEAU : Met à jour le modal s'il est ouvert, sans causer de boucle.
+         * Met à jour le modal s'il est ouvert, sans causer de boucle.
          */
         function updateModalIfOpen() {
             const modal = document.getElementById('viewTicketModal');
@@ -400,19 +386,19 @@
         }
 
         /**
-         * ⭐ NOUVEAU : Rafraîchit uniquement le contenu du modal.
+         * Rafraîchit uniquement le contenu du modal.
          * @param {object} ticket L'objet ticket avec les données à jour.
          */
         function refreshModalContent(ticket) {
             console.log(`🔄 Rafraîchissement du modal utilisateur pour le ticket #${ticket.id}`);
-
-            const messagesContainer = document.getElementById('messagesContainer');
+            
+            const messagesContainer = document.querySelector('#viewTicketModal #messagesContainer');
             if (messagesContainer) {
                 messagesContainer.innerHTML = ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' : 
                     ticket.messages.map(m => `
                         <div class="message ${m.author_role === 'admin' ? 'message-admin' : 'message-user'}">
-                            <strong>${m.author_name}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
-                            <p style="margin-top:5px;">${m.text}</p>
+                            <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
+                            <p style="margin-top:5px;">${escapeHTML(m.text)}</p>
                         </div>
                     `).join('');
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -428,15 +414,11 @@
             container.innerHTML = tickets.map(t => {
                 const unread = t.messages.filter(m => m.is_read === 0 && m.author_role === 'admin').length;
                 const canEdit = t.description_modified === 0 && t.status !== 'Fermé';
-                
-                // ⭐ LOGIQUE DU BOUTON ROURLIR / AVIS (Modifiée)
                 let closedActionsHtml = '';
                 if (t.status === 'Fermé') {
                     if (isReopenable(t.closed_at)) {
-                        // Moins de 24h: Bouton Rouvrir
                         closedActionsHtml = `<button class="btn btn-success btn-small" onclick="reopenTicket(event, ${t.id})">🔄 Rouvrir le ticket</button>`;
                     } else {
-                        // Plus de 24h: Logique d'avis
                         if (t.review_id) {
                             closedActionsHtml = `<div class="user-rating-display">Votre note : ${'★'.repeat(t.review_rating)}${'☆'.repeat(5 - t.review_rating)}</div>`;
                         }
@@ -454,7 +436,7 @@
                                 ${t.status}
                             </span>
                         </div>
-                        <p style="color:var(--gray-600);margin-bottom:10px;">${t.description}</p>
+                        <p style="color:var(--gray-600);margin-bottom:10px;">${escapeHTML(t.description)}</p>
                         <div style="display:flex;gap:10px;font-size:12px;color:var(--gray-600);flex-wrap:wrap;align-items:center;">
                             <span>📁 ${t.category}</span>
                             <span class="badge badge-${t.priority === 'Haute' ? 'high' : t.priority === 'Moyenne' ? 'medium' : 'low'}">${t.priority}</span>
@@ -478,7 +460,6 @@
             const ticket = tickets.find(t => t.id === id);
             if (!ticket) return;
 
-            // ⭐ CORRECTION BUG NOTIFICATION : Marquer les messages comme lus par l'utilisateur
             const hasUnreadAdminMessages = ticket.messages.some(m => m.is_read === 0 && m.author_role === 'admin');
             if (hasUnreadAdminMessages) {
                 console.log(`Marquage des messages admin du ticket #${id} comme lus...`);
@@ -486,20 +467,15 @@
                     method: 'POST',
                     body: { ticket_id: id }
                 });
-                // Recharger les données pour que le badge disparaisse de la liste principale
                 await loadTickets();
             }
 
             fileViewerSystem.setFiles(ticket.files || []);
-            
-            // ⭐ LOGIQUE DU BOUTON ROURLIR / AVIS (Modifiée)
             let closedActionsHtml = '';
             if (ticket.status === 'Fermé') {
                 if (isReopenable(ticket.closed_at)) {
-                    // Moins de 24h: Bouton Rouvrir
                     closedActionsHtml = `<button class="btn btn-success" style="margin-top:15px;" onclick="reopenTicket(event, ${ticket.id})">🔄 Rouvrir le ticket</button>`;
                 } else {
-                    // Plus de 24h: Logique d'avis
                     if (ticket.review_id) {
                         closedActionsHtml = `<div class="user-rating-display" style="margin-top:15px;">Votre note : ${'★'.repeat(ticket.review_rating)}${'☆'.repeat(5 - ticket.review_rating)}</div>`;
                     }
@@ -518,8 +494,8 @@
                         <div>
                             ${closedActionsHtml} </div>
                     </div>
-                    <h4>${ticket.subject}</h4>
-                    <p style="color:var(--gray-600);margin:10px 0;">${ticket.description}</p>
+                    <h4>${escapeHTML(ticket.subject)}</h4>
+                    <p style="color:var(--gray-600);margin:10px 0;">${escapeHTML(ticket.description)}</p>
                 </div>
                 ${ticket.files && ticket.files.length > 0 ? `
                     <h4 style="margin-bottom:15px;">📎 Fichiers joints (${ticket.files.length})</h4>
@@ -562,8 +538,8 @@
                     ${ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' : 
                         ticket.messages.map(m => `
                             <div class="message ${m.author_role === 'admin' ? 'message-admin' : 'message-user'}">
-                                <strong>${m.author_name}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
-                                <p style="margin-top:5px;">${m.text}</p>
+                                <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
+                                <p style="margin-top:5px;">${escapeHTML(m.text)}</p>
                             </div>
                         `).join('')
                     }
@@ -594,7 +570,6 @@
             formData.append('priority', document.getElementById('ticketPriority').value);
             formData.append('description', document.getElementById('ticketDescription').value);
 
-            // ⭐ SOLUTION : Ajouter le jeton CSRF directement au FormData
             formData.append('csrf_token', csrfToken);
             
             closeCreateTicketModal();
@@ -635,8 +610,6 @@
                 const data = await res.json();
                 if (data.success) {
                     await loadTickets(); 
-                    // La fonction loadTickets() met déjà à jour le modal s'il est ouvert,
-                    // donc l'appel à viewTicket() ici est redondant et peut causer des boucles.
                 } else {
                     messageInput.value = message;
                     alert('❌ ' + data.message);
@@ -666,7 +639,6 @@
                 showSuccessAnimation('Description mise à jour !');
                 setTimeout(() => loadTickets(), 1500);
             } else {
-                // ⭐ CORRECTION DE L'ERREUR DE FRAPPE (ligne 518)
                 alert('❌ ' + data.message);
             }
         }
@@ -709,9 +681,8 @@
             }
         }
         
-        // ⭐ NOUVELLE FONCTION POUR ROUVRIR
         async function reopenTicket(e, ticketId) {
-            e.stopPropagation(); // Empêche l'ouverture du modal de détails
+            e.stopPropagation();
             if (!confirm('Voulez-vous vraiment rouvrir ce ticket ?')) {
                 return;
             }
@@ -725,7 +696,6 @@
                 if (data.success) {
                     hideLoadingAnimation();
                     showSuccessAnimation('Ticket rouvert !');
-                    // Fermer le modal de détails s'il est ouvert
                     if (document.getElementById('viewTicketModal').classList.contains('active')) {
                         closeViewTicketModal();
                     }
@@ -808,15 +778,12 @@
             }
         });
 
-        // ⭐ NOUVEAU : Rafraîchissement automatique des tickets pour l'utilisateur
         setInterval(() => {
-            // On ne rafraîchit que si l'utilisateur est connecté et qu'aucun modal n'est ouvert,
-            // pour ne pas perturber son action en cours.
             if (currentUser && !document.querySelector('.modal.active')) {
                 console.log('🔄 Rafraîchissement automatique des tickets utilisateur...');
                 loadTickets();
             }
-        }, 300000); // Toutes les 5 minutes (5 * 60 * 1000 ms)
+        }, 300000);
 
     </script>
 
