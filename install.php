@@ -92,7 +92,7 @@ require_once 'config.php';
                 user_name_encrypted VARCHAR(512) NOT NULL,
                 user_email_encrypted VARCHAR(512) NOT NULL,
                 category_encrypted VARCHAR(512) NOT NULL,
-                priority_encrypted VARCHAR(512) NOT NULL,
+                priority ENUM('Basse', 'Moyenne', 'Haute') NOT NULL,
                 subject_encrypted VARCHAR(512) NOT NULL,
                 description_encrypted TEXT NOT NULL,
                 status ENUM('Ouvert', 'En cours', 'Fermé') DEFAULT 'Ouvert',
