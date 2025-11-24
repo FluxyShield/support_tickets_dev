@@ -84,7 +84,7 @@ function ticket_list() {
             'subject' => decrypt($row['subject_encrypted']),
             'description' => decrypt($row['description_encrypted']),
             'category' => decrypt($row['category_encrypted']),
-            'priority' => decrypt($row['priority_encrypted']),
+            'priority' => $row['priority'],
             'status' => $row['status'],
             'date' => date('d/m/Y H:i', strtotime($row['created_at'])),
             'closed_at' => $row['closed_at'],
@@ -209,7 +209,7 @@ function get_ticket_details() {
         'subject' => decrypt($row['subject_encrypted']),
         'description' => decrypt($row['description_encrypted']),
         'category' => decrypt($row['category_encrypted']),
-        'priority' => decrypt($row['priority_encrypted']),
+        'priority' => $row['priority'],
         'status' => $row['status'],
         'date' => date('d/m/Y', strtotime($row['created_at'])),
     ];
@@ -319,12 +319,11 @@ function ticket_create() {
     $user_email_enc = $user_data['email_encrypted'] ?? '';
 
     $category_enc = encrypt($category);
-    $priority_enc = encrypt($priority);
     $subject_enc = encrypt($subject);
     $description_enc = encrypt($description);
 
-    $stmt = $db->prepare("INSERT INTO tickets (user_id, user_name_encrypted, user_email_encrypted, category_encrypted, priority_encrypted, subject_encrypted, description_encrypted) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssss", $user_id, $user_name_enc, $user_email_enc, $category_enc, $priority_enc, $subject_enc, $description_enc);
+    $stmt = $db->prepare("INSERT INTO tickets (user_id, user_name_encrypted, user_email_encrypted, category_encrypted, priority, subject_encrypted, description_encrypted) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssss", $user_id, $user_name_enc, $user_email_enc, $category_enc, $priority, $subject_enc, $description_enc);
 
     if ($stmt->execute()) {
         // ⭐ SOLUTION : Récupérer l'ID du ticket qui vient d'être inséré
@@ -714,14 +713,14 @@ function get_advanced_stats() {
         $stats['categories'][] = ['name' => decrypt($row['name']), 'count' => (int)$row['count']];
     }
 
-    $priority_query = "SELECT priority_encrypted as name, COUNT(id) as count FROM tickets WHERE {$date_condition} GROUP BY priority_encrypted";
+    $priority_query = "SELECT priority as name, COUNT(id) as count FROM tickets WHERE {$date_condition} GROUP BY priority";
     $stmt = $db->prepare($priority_query);
     $stmt->bind_param("i", $period);
     $stmt->execute();
     $prio_result = $stmt->get_result();
     $stats['priorities'] = [];
     while ($row = $prio_result->fetch_assoc()) {
-        $stats['priorities'][] = ['name' => decrypt($row['name']), 'count' => (int)$row['count']];
+        $stats['priorities'][] = ['name' => $row['name'], 'count' => (int)$row['count']];
     }
 
     // --- Satisfaction ---
@@ -795,7 +794,7 @@ function get_advanced_stats() {
     // ⭐ SÉCURITÉ : Utiliser une requête préparée (même si pas d'entrée utilisateur, bonne pratique)
     $status_not_closed = 'Fermé';
     $unassigned_query = "
-        SELECT id, subject_encrypted, priority_encrypted, TIMESTAMPDIFF(HOUR, created_at, NOW()) as waiting_time
+        SELECT id, subject_encrypted, priority, TIMESTAMPDIFF(HOUR, created_at, NOW()) as waiting_time
         FROM tickets
         WHERE assigned_to IS NULL AND status != ?
         ORDER BY created_at ASC
@@ -810,7 +809,7 @@ function get_advanced_stats() {
         $stats['unassigned'][] = [
             'id' => $row['id'],
             'subject' => decrypt($row['subject_encrypted']),
-            'priority' => decrypt($row['priority_encrypted']),
+            'priority' => $row['priority'],
             'waiting_time' => (int)$row['waiting_time']
         ];
     }
