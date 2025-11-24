@@ -101,7 +101,8 @@ require_once 'config.php';
                 description_modified TINYINT(1) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                closed_at TIMESTAMP NULL DEFAULT NULL, 
+                closed_at TIMESTAMP NULL DEFAULT NULL,
+                review_token VARCHAR(64) NULL UNIQUE,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
                 INDEX idx_user_id (user_id),
@@ -288,6 +289,9 @@ require_once 'config.php';
                     ON tickets(assigned_to, status, created_at DESC)
                 ");
                 echo '<div class="step success">✅ Index tickets (assignation) créé</div>';
+
+                $db->query("CREATE INDEX idx_tickets_priority ON tickets(priority)");
+                echo '<div class="step success">✅ Index tickets (priority) créé</div>';
                 
                 $db->query("
                     CREATE INDEX idx_messages_ticket_created 
