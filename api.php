@@ -32,7 +32,7 @@ $admin_actions_list = [
     'admin_login', 'admin_invite', 'admin_register_complete', 'get_stats',
     'message_read', 'canned_list', 'canned_create', 'canned_delete',
     'get_admins', 'assign_ticket', 'unassign_ticket',
-    'get_app_settings', 'update_app_settings', 'get_advanced_stats',
+    'get_app_settings', 'update_app_settings', 'get_advanced_stats', 'ticket_list',
     'ticket_update', 'ticket_delete', 'message_create'
 ];
 
