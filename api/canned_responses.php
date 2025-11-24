@@ -15,7 +15,10 @@ function canned_list() {
     requireAuth('admin');
     $db = Database::getInstance()->getConnection();
 
-    $result = $db->query("SELECT id, title_encrypted, content_encrypted FROM canned_responses ORDER BY created_at DESC");
+    // ⭐ SÉCURITÉ : Utiliser une requête préparée même pour les requêtes statiques
+    $stmt = $db->prepare("SELECT id, title_encrypted, content_encrypted FROM canned_responses ORDER BY created_at DESC");
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if (!$result) {
         jsonResponse(false, 'Erreur lors de la récupération des modèles.');
@@ -39,12 +42,33 @@ function canned_list() {
 function canned_create() {
     requireAuth('admin');
     $input = getInput();
-    $title = sanitizeInput(trim($input['title'] ?? ''));
-    $content = sanitizeInput(trim($input['content'] ?? ''));
-
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $title = trim($input['title'] ?? '');
+    $content = trim($input['content'] ?? '');
+    
     if (empty($title) || empty($content)) {
         jsonResponse(false, 'Le titre et le contenu sont requis.');
     }
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur des champs (min et max) - déjà fait mais on s'assure que c'est complet
+    if (strlen($title) < 3) {
+        jsonResponse(false, 'Le titre doit contenir au moins 3 caractères.');
+    }
+    if (strlen($title) > 255) {
+        jsonResponse(false, 'Le titre ne peut pas dépasser 255 caractères.');
+    }
+    
+    if (strlen($content) < 10) {
+        jsonResponse(false, 'Le contenu doit contenir au moins 10 caractères.');
+    }
+    if (strlen($content) > 10000) {
+        jsonResponse(false, 'Le contenu ne peut pas dépasser 10000 caractères.');
+    }
+    
+    // ⭐ SÉCURITÉ : Nettoyer les entrées
+    $title = sanitizeInput($title);
+    $content = sanitizeInput($content);
 
     $db = Database::getInstance()->getConnection();
 
@@ -67,13 +91,24 @@ function canned_create() {
 function canned_delete() {
     requireAuth('admin');
     $input = getInput();
-    $id = (int)($input['id'] ?? 0);
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $id = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-    if (empty($id)) {
-        jsonResponse(false, 'ID du modèle requis.');
+    if (!$id) {
+        jsonResponse(false, 'ID du modèle invalide.');
+    }
+    
+    // ⭐ SÉCURITÉ : Vérifier que le modèle existe
+    $db = Database::getInstance()->getConnection();
+    $check_stmt = $db->prepare("SELECT id FROM canned_responses WHERE id = ?");
+    $check_stmt->bind_param("i", $id);
+    $check_stmt->execute();
+    if ($check_stmt->get_result()->num_rows === 0) {
+        jsonResponse(false, 'Modèle non trouvé.');
     }
 
-    $db = Database::getInstance()->getConnection();
+    // La connexion DB est déjà établie ci-dessus
     $stmt = $db->prepare("DELETE FROM canned_responses WHERE id = ?");
     $stmt->bind_param("i", $id);
 

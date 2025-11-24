@@ -26,12 +26,31 @@ function message_create() {
     }
 
     $input = getInput();
-    $ticket_id = (int)($input['ticket_id'] ?? 0);
-    $message = sanitizeInput($input['message'] ?? '');
-
-    if (empty($ticket_id) || empty($message)) {
-        jsonResponse(false, 'ID de ticket et message requis.');
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $ticket_id = filter_var($input['ticket_id'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if (!$ticket_id) {
+        jsonResponse(false, 'ID de ticket invalide.');
     }
+    
+    $message = trim($input['message'] ?? '');
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider que le message n'est pas vide et respecte une longueur maximale
+    if (empty($message)) {
+        jsonResponse(false, 'Le message ne peut pas être vide.');
+    }
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Limite maximale stricte pour les messages
+    if (strlen($message) > 10000) {
+        jsonResponse(false, 'Le message est trop long (maximum 10000 caractères).');
+    }
+    
+    if (strlen($message) < 1) {
+        jsonResponse(false, 'Le message doit contenir au moins 1 caractère.');
+    }
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Nettoyer le message après validation de longueur
+    $message = sanitizeInput($message);
 
     $db = Database::getInstance()->getConnection();
 

@@ -279,6 +279,13 @@ session_write_close();
         let tickets = [];
         let currentUser = null;
 
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return str.toString()
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         async function apiFetch(url, options = {}) {

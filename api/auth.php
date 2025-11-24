@@ -47,9 +47,16 @@ function register() {
     if (empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
         jsonResponse(false, 'Tous les champs marqués d\'un * sont requis.');
     }
-    // ⭐ SÉCURITÉ : Valider la longueur minimale du prénom et du nom côté serveur
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur du prénom et du nom (min et max)
     if (strlen($firstname) < 2 || strlen($lastname) < 2) {
         jsonResponse(false, 'Le prénom et le nom doivent contenir au moins 2 caractères.');
+    }
+    if (strlen($firstname) > 100 || strlen($lastname) > 100) {
+        jsonResponse(false, 'Le prénom et le nom ne peuvent pas dépasser 100 caractères.');
+    }
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur de l'email
+    if (strlen($email) > 255) {
+        jsonResponse(false, 'L\'adresse email ne peut pas dépasser 255 caractères.');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -82,7 +89,8 @@ function register() {
     $firstname_enc = encrypt($firstname);
     $lastname_enc = encrypt($lastname);
     $email_enc = encrypt($email);
-    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT (Argon2id sur PHP 7.2+, plus sécurisé que bcrypt)
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     // --- Insertion dans la base de données ---
     $stmt = $db->prepare("INSERT INTO users (firstname_encrypted, lastname_encrypted, email_encrypted, password_hash, email_hash, role) VALUES (?, ?, ?, ?, ?, 'user')");
@@ -397,7 +405,8 @@ function admin_register_complete() {
 
     $firstname_enc = encrypt($firstname);
     $lastname_enc = encrypt($lastname);
-    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT (Argon2id sur PHP 7.2+, plus sécurisé que bcrypt)
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     $stmt = $db->prepare("INSERT INTO users (firstname_encrypted, lastname_encrypted, email_encrypted, password_hash, email_hash, role) VALUES (?, ?, ?, ?, ?, 'admin')");
     $stmt->bind_param("sssss", $firstname_enc, $lastname_enc, $email_enc, $password_hash, $email_hash);
@@ -489,7 +498,8 @@ function perform_password_reset() {
         $email_hash = $reset_request['email_hash'];
 
         // Mettre à jour le mot de passe
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+        // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT (Argon2id sur PHP 7.2+, plus sécurisé que bcrypt)
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
         $updateStmt = $db->prepare("UPDATE users SET password_hash = ? WHERE email_hash = ?");
         $updateStmt->bind_param("ss", $password_hash, $email_hash);
         

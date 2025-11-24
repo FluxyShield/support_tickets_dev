@@ -33,7 +33,7 @@
                         <input type="hidden" id="token" value="<?php echo $token; ?>">
                         <div class="form-group">
                             <label>Nouveau mot de passe *</label>
-                            <input type="password" id="password" required minlength="6" placeholder="Au moins 6 caractères">
+                            <input type="password" id="password" required minlength="8" placeholder="8 caractères, 1 majuscule, 1 chiffre">
                         </div>
                         <div class="form-group">
                             <label>Confirmer le mot de passe *</label>
@@ -57,9 +57,18 @@
             const form = document.getElementById('resetForm');
             const responseMsg = document.getElementById('responseMsg');
 
+            // ⭐ SÉCURITÉ : Validation côté client (amélioration UX)
             if (password !== confirmPassword) {
                 responseMsg.className = 'error-message';
                 responseMsg.textContent = '❌ Les mots de passe ne correspondent pas.';
+                responseMsg.style.display = 'block';
+                return;
+            }
+            
+            // ⭐ SÉCURITÉ : Validation de la politique de mot de passe côté client
+            if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+                responseMsg.className = 'error-message';
+                responseMsg.textContent = '❌ Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.';
                 responseMsg.style.display = 'block';
                 return;
             }

@@ -19,7 +19,13 @@ if (!function_exists('sendEmail')) {
 function get_admins() {
     requireAuth('admin');
     $db = Database::getInstance()->getConnection();
-    $result = $db->query("SELECT id, firstname_encrypted, lastname_encrypted FROM users WHERE role = 'admin'");
+    
+    // ⭐ SÉCURITÉ : Utiliser une requête préparée même pour les requêtes statiques
+    $role = 'admin';
+    $stmt = $db->prepare("SELECT id, firstname_encrypted, lastname_encrypted FROM users WHERE role = ?");
+    $stmt->bind_param("s", $role);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
     $admins = [];
     while ($row = $result->fetch_assoc()) {
@@ -37,14 +43,33 @@ function get_admins() {
 function assign_ticket() {
     requireAuth('admin');
     $input = getInput();
-    $ticket_id = (int)($input['ticket_id'] ?? 0);
-    $admin_id = (int)($input['admin_id'] ?? 0);
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $ticket_id = filter_var($input['ticket_id'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $admin_id = filter_var($input['admin_id'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-    if (empty($ticket_id) || empty($admin_id)) {
-        jsonResponse(false, 'ID de ticket et ID d\'admin requis.');
+    if (!$ticket_id || !$admin_id) {
+        jsonResponse(false, 'ID de ticket et ID d\'admin invalides.');
+    }
+    
+    // ⭐ SÉCURITÉ : Vérifier que l'admin existe et est bien un admin
+    $db = Database::getInstance()->getConnection();
+    $check_admin_stmt = $db->prepare("SELECT id FROM users WHERE id = ? AND role = 'admin'");
+    $check_admin_stmt->bind_param("i", $admin_id);
+    $check_admin_stmt->execute();
+    if ($check_admin_stmt->get_result()->num_rows === 0) {
+        jsonResponse(false, 'Admin non trouvé ou invalide.');
+    }
+    
+    // ⭐ SÉCURITÉ : Vérifier que le ticket existe
+    $check_ticket_stmt = $db->prepare("SELECT id FROM tickets WHERE id = ?");
+    $check_ticket_stmt->bind_param("i", $ticket_id);
+    $check_ticket_stmt->execute();
+    if ($check_ticket_stmt->get_result()->num_rows === 0) {
+        jsonResponse(false, 'Ticket non trouvé.');
     }
 
-    $db = Database::getInstance()->getConnection();
+    // La connexion DB est déjà établie ci-dessus
     $stmt = $db->prepare("UPDATE tickets SET assigned_to = ?, assigned_at = NOW() WHERE id = ?");
     $stmt->bind_param("ii", $admin_id, $ticket_id);
 
@@ -115,10 +140,21 @@ function assign_ticket() {
 function unassign_ticket() {
     requireAuth('admin');
     $input = getInput();
-    $ticket_id = (int)($input['ticket_id'] ?? 0);
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $ticket_id = filter_var($input['ticket_id'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
-    if (empty($ticket_id)) {
-        jsonResponse(false, 'ID de ticket requis.');
+    if (!$ticket_id) {
+        jsonResponse(false, 'ID de ticket invalide.');
+    }
+    
+    // ⭐ SÉCURITÉ : Vérifier que le ticket existe
+    $db = Database::getInstance()->getConnection();
+    $check_ticket_stmt = $db->prepare("SELECT id FROM tickets WHERE id = ?");
+    $check_ticket_stmt->bind_param("i", $ticket_id);
+    $check_ticket_stmt->execute();
+    if ($check_ticket_stmt->get_result()->num_rows === 0) {
+        jsonResponse(false, 'Ticket non trouvé.');
     }
 
     $db = Database::getInstance()->getConnection();

@@ -36,7 +36,7 @@ $admin_actions_list = [
     'ticket_update', 'ticket_delete', 'message_create'
 ];
 
-if (in_array($action_temp, $admin_actions_list) || (isset($_SESSION['admin_id']) && !isset($_SESSION['user_id']))) {
+if (in_array($action_temp, $admin_actions_list)) {
     session_name('admin_session');
 } else {
     session_name('user_session');
@@ -48,7 +48,9 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $public_post_actions = ['login', 'admin_login', 'register', 'admin_register_complete', 'request_password_reset', 'perform_password_reset'];
 
-    if (!in_array($action, $public_post_actions) && $action !== 'ticket_upload_file') {
+    // ⭐ SÉCURITÉ : Vérifier CSRF pour toutes les actions POST sauf les authentifications publiques
+    // Les uploads de fichiers nécessitent aussi une protection CSRF
+    if (!in_array($action, $public_post_actions)) {
         checkCsrfToken();
     }
 }
@@ -103,14 +105,24 @@ function jsonResponse($success, $message, $data = []) {
     exit;
 }
 function requireAuth($role = null) {
+    // Si un rôle spécifique est requis
     if ($role === 'admin') {
         if (!isset($_SESSION['admin_id'])) {
-            jsonResponse(false, 'Authentification admin requise');
+            jsonResponse(false, 'Authentification administrateur requise.');
         }
-    } else {
+        return; // Succès
+    }
+
+    if ($role === 'user') {
         if (!isset($_SESSION['user_id'])) {
-            jsonResponse(false, 'Authentification requise');
+            jsonResponse(false, 'Authentification utilisateur requise.');
         }
+        return; // Succès
+    }
+
+    // Si aucun rôle n'est spécifié, on vérifie si un utilisateur OU un admin est connecté
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])) {
+        jsonResponse(false, 'Authentification requise.');
     }
 }
 function getInput() {

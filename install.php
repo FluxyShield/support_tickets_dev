@@ -221,6 +221,17 @@ require_once 'config.php';
             $db->query($sql_login_attempts);
             echo '<div class="step success">✅ Table "login_attempts" créée</div>';
 
+            $sql_rate_limits = "CREATE TABLE IF NOT EXISTS `rate_limits` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `action` VARCHAR(100) NOT NULL,
+                `ip_address` VARCHAR(45) NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX `idx_action_ip` (`action`, `ip_address`),
+                INDEX `idx_created_at` (`created_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+            $db->query($sql_rate_limits);
+            echo '<div class="step success">✅ Table "rate_limits" créée</div>';
+
             $sql_settings = "CREATE TABLE IF NOT EXISTS settings (
                 setting_key VARCHAR(50) NOT NULL PRIMARY KEY,
                 setting_value TEXT
@@ -335,11 +346,16 @@ require_once 'config.php';
             $admin_lastname = 'Admin';
             $admin_email = 'support-it@descamps-bois.fr';
             $admin_password = '@Desc@mps2025!'; 
+            // ⭐ SÉCURITÉ : Ne jamais hardcoder les mots de passe. Générer un mot de passe aléatoire et sécurisé.
+            // Le mot de passe sera affiché une seule fois à la fin de l'installation.
+            $admin_password = bin2hex(random_bytes(8)) . 'A1!'; // Génère un mot de passe aléatoire de 19 caractères
+
             $email_hash = hashData($admin_email);
             $firstname_enc = encrypt($admin_firstname);
             $lastname_enc = encrypt($admin_lastname);
             $email_enc = encrypt($admin_email);
-            $password_hash = password_hash($admin_password, PASSWORD_BCRYPT);
+            // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT (Argon2id sur PHP 7.2+, plus sécurisé que bcrypt)
+            $password_hash = password_hash($admin_password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("INSERT INTO users (firstname_encrypted, lastname_encrypted, email_encrypted, password_hash, email_hash, role) VALUES (?, ?, ?, ?, ?, 'admin')");
             $stmt->bind_param("sssss", $firstname_enc, $lastname_enc, $email_enc, $password_hash, $email_hash);
             if ($stmt->execute()) {

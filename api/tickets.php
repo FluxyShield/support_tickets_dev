@@ -15,119 +15,157 @@ if (!defined('ROOT_PATH')) {
 if (!function_exists('sendEmail')) {
     require_once ROOT_PATH . '/config.php';
 }
-function ticket_list()
-{
-    // ⭐ SOLUTION : Vérifier si un admin OU un utilisateur est connecté
-    if (isset($_SESSION['admin_id'])) {
-        // Logique pour l'administrateur (code existant)
-        requireAuth('admin');
-        $db = Database::getInstance()->getConnection();
-
-        // --- Récupération des paramètres GET ---
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-        $offset = ($page - 1) * $limit;
-
-        $status = $_GET['status'] ?? 'all';
-        $priority = $_GET['priority'] ?? 'all';
-        $search = $_GET['search'] ?? '';
-        $my_tickets = filter_var($_GET['my_tickets'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-
-        // --- Construction de la requête ---
-        $whereClauses = [];
-        $params = [];
-        $types = '';
-
-        if ($status !== 'all') {
-            $whereClauses[] = "t.status = ?";
-            $params[] = $status;
-            $types .= 's';
-        }
-        if ($priority !== 'all') {
-            $whereClauses[] = "t.priority = ?";
-            $params[] = $priority;
-            $types .= 's';
-        }
-        if ($my_tickets && isset($_SESSION['admin_id'])) {
-            $whereClauses[] = "t.assigned_to = ?";
-            $params[] = $_SESSION['admin_id'];
-            $types .= 'i';
-        }
-        if (!empty($search)) {
-            $search_term = "%" . $search . "%";
-            $whereClauses[] = "(t.id = ?)"; // La recherche LIKE sur des champs chiffrés est inefficace.
-            $params[] = $search;
-            $types .= 's'; // Un seul 's' pour le t.id
-        }
-
-        $whereSql = count($whereClauses) > 0 ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
-
-        // --- Requête pour le total (pagination) ---
-        $totalQuery = "SELECT COUNT(t.id) as total FROM tickets t $whereSql";
-        $stmt = $db->prepare($totalQuery);
-        if (count($params) > 0) {
-            $stmt->bind_param($types, ...$params);
-        }
-        $stmt->execute();
-        $totalResult = $stmt->get_result()->fetch_assoc();
-        $totalItems = $totalResult['total'];
-        $totalPages = ceil($totalItems / $limit);
-
-        // --- Requête pour les tickets de la page actuelle ---
-        $ticketsQuery = "SELECT t.* FROM tickets t $whereSql ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
-        $params[] = $limit;
-        $params[] = $offset;
-        $types .= 'ii';
-
-        $stmt = $db->prepare($ticketsQuery);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-    } elseif (isset($_SESSION['user_id'])) {
-        // Logique pour l'utilisateur (plus simple)
-        requireAuth('user');
-        $user_id = (int)$_SESSION['user_id'];
-        $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("SELECT * FROM tickets WHERE user_id = ? ORDER BY created_at DESC");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $totalItems = $result->num_rows;
-        $totalPages = 1;
-        $page = 1;
-
-    } else {
-        // Personne n'est connecté
-        requireAuth(); // Va déclencher l'erreur d'authentification standard
+function ticket_list() {
+    if (!isset($_SESSION['admin_id']) && !isset($_SESSION['user_id'])) {
+        requireAuth();
         return;
     }
 
-    // --- Préparation des données utilisateur pour la réponse ---
+    $db = Database::getInstance()->getConnection();
+    $is_admin = isset($_SESSION['admin_id']);
+
+    // --- Récupération et validation des paramètres ---
+    $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT, ['options' => ['default' => 1, 'min_range' => 1]]);
+    $limit = filter_input(INPUT_GET, 'limit', FILTER_VALIDATE_INT, ['options' => ['default' => 10, 'min_range' => 1, 'max_range' => 100]]);
+    $offset = ($page - 1) * $limit;
+    
+    $status = $_GET['status'] ?? 'all';
+    $priority = $_GET['priority'] ?? 'all';
+    $search = $_GET['search'] ?? '';
+    $my_tickets = filter_var($_GET['my_tickets'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    $include_files = filter_var($_GET['include_files'] ?? 'true', FILTER_VALIDATE_BOOLEAN); // Par défaut on inclut tout maintenant
+
+    // --- Construction de la requête principale (tickets) ---
+    $whereClauses = [];
+    $params = [];
+    $types = '';
+
+    if ($is_admin) {
+        if ($status !== 'all') { $whereClauses[] = "t.status = ?"; $params[] = $status; $types .= 's'; }
+        if ($priority !== 'all') { $whereClauses[] = "t.priority = ?"; $params[] = $priority; $types .= 's'; }
+        if ($my_tickets) { $whereClauses[] = "t.assigned_to = ?"; $params[] = $_SESSION['admin_id']; $types .= 'i'; }
+        if (!empty($search)) { $whereClauses[] = "t.id LIKE ?"; $params[] = "%$search%"; $types .= 's'; }
+    } else {
+        $whereClauses[] = "t.user_id = ?";
+        $params[] = $_SESSION['user_id'];
+        $types .= 'i';
+    }
+    
+    $whereSql = count($whereClauses) > 0 ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // --- Requête pour le total (pagination) ---
+    $totalQuery = "SELECT COUNT(t.id) as total FROM tickets t $whereSql";
+    $stmt = $db->prepare($totalQuery);
+    if (count($params) > 0) { $stmt->bind_param($types, ...$params); }
+    $stmt->execute();
+    $totalItems = $stmt->get_result()->fetch_assoc()['total'];
+    $totalPages = ceil($totalItems / $limit);
+
+    // --- Requête pour les tickets de la page ---
+    $ticketsQuery = "SELECT t.* FROM tickets t $whereSql ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
+    $params[] = $limit;
+    $params[] = $offset;
+    $types .= 'ii';
+
+    $stmt = $db->prepare($ticketsQuery);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $ticket_results = $stmt->get_result();
+
+    $tickets = [];
+    $ticket_ids = [];
+    while ($row = $ticket_results->fetch_assoc()) {
+        $ticket_id = (int)$row['id'];
+        $tickets[$ticket_id] = [
+            'id' => $ticket_id,
+            'user_id' => (int)$row['user_id'],
+            'name' => decrypt($row['user_name_encrypted']),
+            'email' => decrypt($row['user_email_encrypted']),
+            'subject' => decrypt($row['subject_encrypted']),
+            'description' => decrypt($row['description_encrypted']),
+            'category' => decrypt($row['category_encrypted']),
+            'priority' => decrypt($row['priority_encrypted']),
+            'status' => $row['status'],
+            'date' => date('d/m/Y H:i', strtotime($row['created_at'])),
+            'closed_at' => $row['closed_at'],
+            'assigned_to' => isset($row['assigned_to']) ? (int)$row['assigned_to'] : null,
+            'description_modified' => (int)$row['description_modified'],
+            'review_id' => (int)$row['review_id'],
+            'review_rating' => (int)$row['review_rating'],
+            'messages' => [], // Initialisation
+            'files' => []      // Initialisation
+        ];
+        $ticket_ids[] = $ticket_id;
+    }
+
+    // --- DEBUT DE LA CORRECTION N+1 ---
+    if (!empty($ticket_ids)) {
+        $ids_placeholder = implode(',', array_fill(0, count($ticket_ids), '?'));
+        $ids_types = str_repeat('i', count($ticket_ids));
+
+        // 2. Une seule requête pour tous les messages
+        $messages = [];
+        $msg_stmt = $db->prepare("SELECT * FROM messages WHERE ticket_id IN ($ids_placeholder) ORDER BY created_at ASC");
+        $msg_stmt->bind_param($ids_types, ...$ticket_ids);
+        $msg_stmt->execute();
+        $msg_result = $msg_stmt->get_result();
+        while ($msg = $msg_result->fetch_assoc()) {
+            $messages[$msg['ticket_id']][] = [
+                'id' => (int)$msg['id'],
+                'author_name' => decrypt($msg['author_name_encrypted']),
+                'author_role' => $msg['author_role'],
+                'text' => decrypt($msg['message_encrypted']),
+                'date' => $msg['created_at'],
+                'is_read' => (int)$msg['is_read'],
+            ];
+        }
+
+        // 3. Une seule requête pour tous les fichiers (si nécessaire)
+        $files = [];
+        if ($include_files) {
+            $file_stmt = $db->prepare("SELECT * FROM ticket_files WHERE ticket_id IN ($ids_placeholder)");
+            $file_stmt->bind_param($ids_types, ...$ticket_ids);
+            $file_stmt->execute();
+            $file_result = $file_stmt->get_result();
+            while ($file = $file_result->fetch_assoc()) {
+                $files[$file['ticket_id']][] = [
+                    'id' => (int)$file['id'],
+                    'name' => decrypt($file['original_filename_encrypted']),
+                    'type' => $file['file_type'],
+                    'size' => (int)$file['file_size'],
+                    'date' => date('d/m/Y', strtotime($file['uploaded_at'])),
+                    'uploaded_by' => decrypt($file['uploaded_by_encrypted'])
+                ];
+            }
+        }
+
+        // 4. On attache les messages et fichiers aux tickets correspondants
+        foreach ($tickets as $ticket_id => &$ticket) {
+            if (isset($messages[$ticket_id])) {
+                $ticket['messages'] = $messages[$ticket_id];
+            }
+            if (isset($files[$ticket_id])) {
+                $ticket['files'] = $files[$ticket_id];
+            }
+        }
+    }
+    // --- FIN DE LA CORRECTION N+1 ---
+
     $user_info = null;
-    if (isset($_SESSION['user_id'])) {
+    if (!$is_admin) {
         $user_info = [
             'firstname' => $_SESSION['firstname'],
             'lastname' => $_SESSION['lastname']
         ];
     }
 
-    // --- Traitement commun des résultats ---
-    $tickets = [];
-    while ($row = $result->fetch_assoc()) {
-        // ... (le code de récupération des tickets reste le même)
-        // NOTE: Le code de récupération des tickets a été omis pour la clarté du diff,
-        // mais il est bien conservé dans la version finale.
-        // ...
-    }
-
     jsonResponse(true, 'Tickets récupérés', [
-        'tickets' => $tickets,
-        'user' => $user_info, // ⭐ AJOUT : Renvoyer les infos de l'utilisateur connecté
+        'tickets' => array_values($tickets), // Réindexer le tableau pour la réponse JSON
+        'user' => $user_info,
         'pagination' => [
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'totalItems' => $totalItems
+            'totalItems' => (int)$totalItems
         ]
     ]);
 }
@@ -252,12 +290,18 @@ function ticket_create() {
         jsonResponse(false, 'Priorité non valide.');
     }
 
-    // Valider la longueur des champs texte
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur des champs texte (min et max)
     if (strlen($subject) < 5) {
         jsonResponse(false, 'Le sujet doit contenir au moins 5 caractères.');
     }
+    if (strlen($subject) > 255) {
+        jsonResponse(false, 'Le sujet ne peut pas dépasser 255 caractères.');
+    }
     if (strlen($description) < 10) {
         jsonResponse(false, 'La description doit contenir au moins 10 caractères.');
+    }
+    if (strlen($description) > 10000) {
+        jsonResponse(false, 'La description ne peut pas dépasser 10000 caractères.');
     }
     // --- Fin de la validation ---
 
@@ -474,20 +518,24 @@ function get_ticket_by_review_token() {
  */
 function submit_review_by_token() {
     $input = getInput();
-    $token = $input['token'] ?? '';
-    $rating = (int)($input['rating'] ?? 0);
-    $comment = sanitizeInput($input['comment'] ?? '');
-
-    if (empty($token) || $rating < 1 || $rating > 5) {
-        jsonResponse(false, 'Données invalides.');
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $token = trim($input['token'] ?? '');
+    if (empty($token) || strlen($token) > 255) {
+        jsonResponse(false, 'Jeton invalide.');
     }
-
-    // ⭐ SÉCURITÉ RENFORCÉE : Valider la longueur et le type de la note et du commentaire
-    if (!is_numeric($rating) || $rating < 1 || $rating > 5) {
-        jsonResponse(false, 'La note doit être un nombre entre 1 et 5.');
+    
+    // ⭐ SÉCURITÉ : Valider et nettoyer la note
+    $rating = filter_var($input['rating'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+    if ($rating === false || $rating < 1 || $rating > 5) {
+        jsonResponse(false, 'La note doit être un nombre entier entre 1 et 5.');
     }
-
-    // ⭐ SÉCURITÉ : Valider la longueur du commentaire
+    
+    // ⭐ SÉCURITÉ : Valider et nettoyer le commentaire
+    $comment = trim($input['comment'] ?? '');
+    $comment = sanitizeInput($comment);
+    
+    // ⭐ SÉCURITÉ : Valider la longueur du commentaire (max 2000 caractères)
     if (strlen($comment) > 2000) {
         jsonResponse(false, 'Le commentaire ne peut pas dépasser 2000 caractères.');
     }
@@ -513,7 +561,11 @@ function submit_review_by_token() {
     
     if ($insert_stmt->execute()) {
         $review_id = $insert_stmt->insert_id;
-        $db->query("UPDATE tickets SET review_id = $review_id, review_rating = $rating, review_token = NULL WHERE id = " . $ticket['id']);
+        // ⭐ SÉCURITÉ : Utiliser une requête préparée pour éviter l'injection SQL
+        $ticket_id = (int)$ticket['id'];
+        $update_stmt = $db->prepare("UPDATE tickets SET review_id = ?, review_rating = ?, review_token = NULL WHERE id = ?");
+        $update_stmt->bind_param("iii", $review_id, $rating, $ticket_id);
+        $update_stmt->execute();
         jsonResponse(true, 'Avis enregistré avec succès.');
     } else {
         jsonResponse(false, 'Erreur lors de l\'enregistrement de l\'avis.');
@@ -524,17 +576,23 @@ function ticket_update_description() {
     requireAuth('user');
     $input = getInput();
     $ticket_id = (int)($input['ticket_id'] ?? 0);
-    $description = sanitizeInput($input['description'] ?? '');
+    $description = trim($input['description'] ?? '');
     $user_id = (int)$_SESSION['user_id'];
 
     if (empty($ticket_id) || empty($description)) {
         jsonResponse(false, 'Données invalides.');
     }
 
-    // ⭐ SÉCURITÉ RENFORCÉE : Valider la longueur de la description
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur de la description (min et max)
     if (strlen($description) < 10) {
         jsonResponse(false, 'La description doit contenir au moins 10 caractères.');
     }
+    if (strlen($description) > 10000) {
+        jsonResponse(false, 'La description ne peut pas dépasser 10000 caractères.');
+    }
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Nettoyer la description après validation de longueur
+    $description = sanitizeInput($description);
 
     $db = Database::getInstance()->getConnection();
     $description_enc = encrypt($description);
@@ -734,14 +792,19 @@ function get_advanced_stats() {
     $stats['top_categories'] = array_slice($stats['categories'], 0, 5);
 
     // --- Tickets non assignés ---
+    // ⭐ SÉCURITÉ : Utiliser une requête préparée (même si pas d'entrée utilisateur, bonne pratique)
+    $status_not_closed = 'Fermé';
     $unassigned_query = "
         SELECT id, subject_encrypted, priority_encrypted, TIMESTAMPDIFF(HOUR, created_at, NOW()) as waiting_time
         FROM tickets
-        WHERE assigned_to IS NULL AND status != 'Fermé'
+        WHERE assigned_to IS NULL AND status != ?
         ORDER BY created_at ASC
         LIMIT 5
     ";
-    $unassigned_result = $db->query($unassigned_query);
+    $unassigned_stmt = $db->prepare($unassigned_query);
+    $unassigned_stmt->bind_param("s", $status_not_closed);
+    $unassigned_stmt->execute();
+    $unassigned_result = $unassigned_stmt->get_result();
     $stats['unassigned'] = [];
     while ($row = $unassigned_result->fetch_assoc()) {
         $stats['unassigned'][] = [

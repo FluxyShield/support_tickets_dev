@@ -20,7 +20,11 @@ if (!function_exists('sendEmail')) {
 function get_app_settings() {
     requireAuth('admin');
     $db = Database::getInstance()->getConnection();
-    $result = $db->query("SELECT setting_key, setting_value FROM settings");
+    
+    // ⭐ SÉCURITÉ : Utiliser une requête préparée même pour les requêtes statiques
+    $stmt = $db->prepare("SELECT setting_key, setting_value FROM settings");
+    $stmt->execute();
+    $result = $stmt->get_result();
     
     $settings = [];
     while ($row = $result->fetch_assoc()) {
@@ -36,28 +40,65 @@ function get_app_settings() {
     requireAuth('admin');
     $db = Database::getInstance()->getConnection();
 
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $input = getInput();
+    
     // --- Mise à jour des valeurs textuelles ---
-    $app_name = sanitizeInput($_POST['app_name'] ?? '');
-    $app_primary_color = sanitizeInput($_POST['app_primary_color'] ?? '#EF8000');
+    $app_name = trim($input['app_name'] ?? $_POST['app_name'] ?? '');
+    $app_primary_color = trim($input['app_primary_color'] ?? $_POST['app_primary_color'] ?? '#EF8000');
 
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider le nom de l'application (min et max)
     if (!empty($app_name)) {
+        if (strlen($app_name) < 2) {
+            jsonResponse(false, 'Le nom de l\'application doit contenir au moins 2 caractères.');
+        }
+        if (strlen($app_name) > 100) {
+            jsonResponse(false, 'Le nom de l\'application ne peut pas dépasser 100 caractères.');
+        }
+        $app_name = sanitizeInput($app_name);
         updateSetting($db, 'app_name', $app_name);
     }
-    if (preg_match('/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/', $app_primary_color)) {
-        updateSetting($db, 'app_primary_color', $app_primary_color);
+    
+    // ⭐ SÉCURITÉ : Valider la couleur (format hexadécimal)
+    if (!preg_match('/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/', $app_primary_color)) {
+        jsonResponse(false, 'Format de couleur invalide. Utilisez un code hexadécimal (ex: #EF8000).');
     }
+    $app_primary_color = sanitizeInput($app_primary_color);
+    updateSetting($db, 'app_primary_color', $app_primary_color);
 
     // --- Gestion du téléversement du logo ---
     if (isset($_FILES['app_logo']) && $_FILES['app_logo']['error'] === UPLOAD_ERR_OK) {
         $file = $_FILES['app_logo'];
+        
+        // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte du fichier uploadé
+        if (!is_uploaded_file($file['tmp_name'])) {
+            jsonResponse(false, 'Fichier non valide : tentative d\'upload falsifiée.');
+        }
+        
         $allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml'];
         $maxSize = 5 * 1024 * 1024; // 5 MB
-
-        if (!in_array($file['type'], $allowedTypes)) {
+        
+        // ⭐ SÉCURITÉ : Vérifier le type MIME réel du fichier
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if (!$finfo) {
+            jsonResponse(false, 'Erreur lors de la vérification du type de fichier.');
+        }
+        $mime_type = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        if (!in_array($mime_type, $allowedTypes)) {
             jsonResponse(false, 'Type de fichier non autorisé pour le logo (PNG, JPG, GIF, SVG autorisés).');
         }
-        if ($file['size'] > $maxSize) {
-            jsonResponse(false, 'Le fichier du logo est trop volumineux (max 5MB).');
+        
+        if ($file['size'] > $maxSize || $file['size'] <= 0) {
+            jsonResponse(false, 'Le fichier du logo est trop volumineux (max 5MB) ou invalide.');
+        }
+        
+        // ⭐ SÉCURITÉ : Valider l'extension
+        $allowed_extensions = ['png', 'jpg', 'jpeg', 'gif', 'svg'];
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowed_extensions)) {
+            jsonResponse(false, 'Extension de fichier non autorisée pour le logo.');
         }
 
         // Utiliser une extension de fichier sécurisée

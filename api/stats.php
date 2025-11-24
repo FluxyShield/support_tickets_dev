@@ -314,20 +314,35 @@ function getTrends($db) {
     $previous_period_start = date('Y-m-d H:i:s', strtotime('-60 days'));
     $previous_period_end = date('Y-m-d H:i:s', strtotime('-30 days'));
     
+    // ⭐ SÉCURITÉ : Utiliser des requêtes préparées pour éviter l'injection SQL
     // Tickets créés - période actuelle
-    $current_created = $db->query("SELECT COUNT(*) as count FROM tickets WHERE created_at >= '{$current_period_start}'")->fetch_assoc()['count'];
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM tickets WHERE created_at >= ?");
+    $stmt->bind_param("s", $current_period_start);
+    $stmt->execute();
+    $current_created = $stmt->get_result()->fetch_assoc()['count'];
     
     // Tickets créés - période précédente
-    $previous_created = $db->query("SELECT COUNT(*) as count FROM tickets WHERE created_at >= '{$previous_period_start}' AND created_at < '{$previous_period_end}'")->fetch_assoc()['count'];
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM tickets WHERE created_at >= ? AND created_at < ?");
+    $stmt->bind_param("ss", $previous_period_start, $previous_period_end);
+    $stmt->execute();
+    $previous_created = $stmt->get_result()->fetch_assoc()['count'];
     
     // Calcul de la variation
     $created_variation = $previous_created > 0 ? round((($current_created - $previous_created) / $previous_created) * 100, 1) : 0;
     
+    // ⭐ SÉCURITÉ : Utiliser des requêtes préparées pour éviter l'injection SQL
     // Tickets résolus - période actuelle
-    $current_resolved = $db->query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Fermé' AND closed_at >= '{$current_period_start}'")->fetch_assoc()['count'];
+    $status_closed = 'Fermé';
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM tickets WHERE status = ? AND closed_at >= ?");
+    $stmt->bind_param("ss", $status_closed, $current_period_start);
+    $stmt->execute();
+    $current_resolved = $stmt->get_result()->fetch_assoc()['count'];
     
     // Tickets résolus - période précédente
-    $previous_resolved = $db->query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Fermé' AND closed_at >= '{$previous_period_start}' AND closed_at < '{$previous_period_end}'")->fetch_assoc()['count'];
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM tickets WHERE status = ? AND closed_at >= ? AND closed_at < ?");
+    $stmt->bind_param("sss", $status_closed, $previous_period_start, $previous_period_end);
+    $stmt->execute();
+    $previous_resolved = $stmt->get_result()->fetch_assoc()['count'];
     
     $resolved_variation = $previous_resolved > 0 ? round((($current_resolved - $previous_resolved) / $previous_resolved) * 100, 1) : 0;
     
