@@ -6,6 +6,8 @@
 
 define('ROOT_PATH', __DIR__);
 require_once 'config.php';
+
+// Configuration de la session admin
 session_name('admin_session');
 initialize_session();
 
@@ -13,8 +15,12 @@ $isAdminLoggedIn = isset($_SESSION['admin_id']);
 $csrf_token = $_SESSION['csrf_token'] ?? '';
 $admin_name = $_SESSION['admin_firstname'] ?? 'Admin';
 
+// On ferme l'écriture de session pour ne pas bloquer les requêtes parallèles
 session_write_close(); 
 
+// ============================================
+// 1. AFFICHAGE PAGE DE CONNEXION (SI PAS CONNECTÉ)
+// ============================================
 if (!$isAdminLoggedIn) {
 ?>
 <!DOCTYPE html>
@@ -26,9 +32,6 @@ if (!$isAdminLoggedIn) {
     <link rel="stylesheet" href="style.css">
     <title>Connexion Admin - Support Ticketing</title>
     <style>
-        /* ============================================
-           STYLES POUR LA PAGE DE CONNEXION ADMIN
-           ============================================ */
         body {
             display: flex;
             align-items: center;
@@ -38,14 +41,6 @@ if (!$isAdminLoggedIn) {
             margin: 0;
             padding: 20px;
         }
-
-        .login-body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
         .login-container {
             background: white;
             border-radius: 20px;
@@ -55,18 +50,10 @@ if (!$isAdminLoggedIn) {
             width: 100%;
             animation: fadeInUp 0.5s ease;
         }
-
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
         .login-header {
             background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
             color: white;
@@ -74,136 +61,31 @@ if (!$isAdminLoggedIn) {
             text-align: center;
             border-bottom: 4px solid #EF8000;
         }
-
-        .login-header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-            color: white;
-            font-weight: 700;
-        }
-
-        .login-header p {
-            margin: 0;
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .login-content {
-            padding: 40px;
-        }
-
-        .login-content .form-group {
-            margin-bottom: 20px;
-        }
-
-        .login-content .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--gray-dark);
-        }
-
-        .login-content .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-            font-family: 'Source Sans Pro', sans-serif;
-        }
-
-        .login-content .form-group input:focus {
-            outline: none;
-            border-color: #EF8000;
-            box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
-        }
-
-        .login-content .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .login-content .btn-primary:hover {
-            background: linear-gradient(135deg, #4A4A49 0%, #4A4A49 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 74, 73, 0.4);
-        }
-
-        .error-message {
-            background: #fee2e2;
-            border-left: 4px solid #ef4444;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #991b1b;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .login-content > div:last-child {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .login-content > div:last-child a {
-            color: #EF8000;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-
-        .login-content > div:last-child a:hover {
-            color: #D67200;
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-container {
-                margin: 10px;
-            }
-
-            .login-header {
-                padding: 30px 20px;
-            }
-
-            .login-header h1 {
-                font-size: 24px;
-            }
-
-            .login-content {
-                padding: 30px 20px;
-            }
-        }
+        .login-header h1 { font-size: 28px; margin-bottom: 5px; color: white; font-weight: 700; }
+        .login-header p { margin: 0; font-size: 16px; opacity: 0.9; }
+        .login-content { padding: 40px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--gray-dark); }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #D4D4D4; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: #EF8000; box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1); }
+        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary:hover { background: linear-gradient(135deg, #4A4A49 0%, #4A4A49 100%); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(74, 74, 73, 0.4); }
+        .error-message { background: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #991b1b; display: none; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .forgot-link { text-align: center; margin-top: 20px; }
+        .forgot-link a { color: #EF8000; text-decoration: none; font-weight: 600; }
+        .forgot-link a:hover { color: #D67200; text-decoration: underline; }
     </style>
 </head>
-<body class="login-body">
+<body>
     <div class="login-container">
         <div class="login-header">
             <h1>🎫 Support Ticketing</h1>
             <p>Connexion Administrateur</p>
         </div>
         <div class="login-content">
-            <div id="errorMsg" class="error-message" style="display:none;"></div>
+            <div id="errorMsg" class="error-message"></div>
+            
             <form id="loginForm" onsubmit="loginAdmin(event)">
                 <div class="form-group">
                     <label>Adresse email</label>
@@ -213,13 +95,71 @@ if (!$isAdminLoggedIn) {
                     <label>Mot de passe</label>
                     <input type="password" id="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Se connecter</button>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Se connecter</button>
             </form>
-            <div>
+            
+            <div class="forgot-link">
                 <a href="forgot_password.php?role=admin">Mot de passe oublié ?</a>
             </div>
         </div>
     </div>
+
+    <script>
+        // Script de connexion intégré pour éviter l'erreur "loginAdmin is not defined"
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        async function loginAdmin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const btn = document.getElementById('loginBtn');
+
+            // Reset UI
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Connexion...';
+
+            try {
+                const res = await fetch('api.php?action=admin_login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                // Vérification si la réponse est du JSON
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Réponse serveur invalide (non-JSON). Vérifiez les logs PHP.");
+                }
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Rechargement pour passer du mode "invité" au mode "admin"
+                    window.location.reload();
+                } else {
+                    showError(data.message || 'Erreur inconnue.');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showError('Erreur de connexion au serveur.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Se connecter';
+            }
+        }
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = '❌ ' + msg;
+            errorDiv.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
 <?php
@@ -227,7 +167,7 @@ if (!$isAdminLoggedIn) {
 }
 
 // ============================================
-// TABLEAU DE BORD ADMIN (Code existant)
+// 2. AFFICHAGE TABLEAU DE BORD (SI CONNECTÉ)
 // ============================================
 ?>
 <!DOCTYPE html>
@@ -242,7 +182,6 @@ if (!$isAdminLoggedIn) {
 </head>
 <body>
     <div class="admin-grid-container">
-        <!-- Header -->
         <header class="admin-header">
             <div class="header-left">
                 <div class="logo">🎫 Support Ticketing</div>
@@ -255,16 +194,13 @@ if (!$isAdminLoggedIn) {
             </div>
         </header>
 
-        <!-- Navigation principale -->
         <nav class="admin-nav">
             <button class="admin-tab active" onclick="switchTab('tickets')">Tickets</button>
             <button class="admin-tab" onclick="switchTab('stats')">Statistiques</button>
             <button class="admin-tab" onclick="switchTab('settings')">Paramètres</button>
         </nav>
 
-        <!-- Contenu principal -->
         <main class="admin-main">
-            <!-- Onglet Tickets -->
             <div id="ticketsTab" class="tab-content active">
                 <div class="kpi-grid">
                     <div class="kpi-card"><h4>Total</h4><p id="totalTickets">...</p></div>
@@ -306,27 +242,21 @@ if (!$isAdminLoggedIn) {
                             </tr>
                         </thead>
                         <tbody id="ticketsTable">
-                            <!-- Les tickets seront insérés ici par JS -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
 
                 <div id="paginationControls" class="pagination"></div>
             </div>
 
-            <!-- Onglet Statistiques -->
             <div id="statsTab" class="tab-content">
-                <!-- Le contenu des statistiques sera chargé ici -->
-            </div>
+                </div>
 
-            <!-- Onglet Paramètres -->
             <div id="settingsTab" class="tab-content">
-                <!-- Le contenu des paramètres sera chargé ici -->
-            </div>
+                </div>
         </main>
     </div>
 
-    <!-- Modals -->
     <div id="viewTicketModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -337,10 +267,20 @@ if (!$isAdminLoggedIn) {
         </div>
     </div>
     
-    <div id="inactivityModal" class="modal"></div>
+    <div id="inactivityModal" class="modal">
+        <div class="modal-content" style="max-width: 450px; text-align: center;">
+            <div class="modal-header">
+                <h3>Êtes-vous toujours là ?</h3>
+            </div>
+            <p style="margin: 20px 0; font-size: 16px;">Vous allez être déconnecté pour inactivité dans <strong id="inactivityCountdown">120</strong> secondes.</p>
+            <button class="btn btn-primary" onclick="inactivityManager.stay()" style="width: 100%;">Je suis toujours là</button>
+        </div>
+    </div>
+    
+    <div id="overlay" class="overlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="js/admin-stats.js"></script>
+    <script src="js/drag-drop-upload.js"></script> <script src="js/admin-stats.js"></script>
     <script src="js/file-viewer-system.js"></script>
     <script src="js/admin-script.js"></script>
 </body>
