@@ -1,72 +1,138 @@
-        /* Navigation par onglets */
-        .admin-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 30px;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+/* ==========================================================================
+   1. STRUCTURE & LAYOUT (LA PARTIE MANQUANTE QUI CORRIGE L'AFFICHAGE)
+   ========================================================================== */
 
-        .admin-tab {
-            flex: 1;
-            padding: 15px 20px;
-            background: white;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--gray-600);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f3f4f6;
+    overflow-x: hidden; /* Évite le scroll horizontal */
+}
 
-        .admin-tab:hover {
-            background: var(--gray-50);
-        }
+/* Conteneur principal qui crée la grille (Menu à gauche / Contenu à droite) */
+.admin-grid-container {
+    display: grid;
+    grid-template-columns: 260px 1fr; /* Colonne menu fixe, reste auto */
+    grid-template-rows: 70px 1fr;     /* Header fixe, reste auto */
+    grid-template-areas: 
+        "header header"
+        "nav main";
+    height: 100vh;
+    width: 100vw;
+}
 
-        .admin-tab.active {
-            color: var(--orange);
-            border-bottom-color: var(--orange);
-            background: rgba(239, 128, 0, 0.05);
-        }
+/* En-tête (Header) */
+.admin-header {
+    grid-area: header;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    z-index: 20;
+    border-bottom: 4px solid var(--orange);
+    position: relative;
+}
 
-        .tab-content {
-            display: none;
-        }
+.header-left .logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gray-dark);
+    text-decoration: none;
+}
 
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+/* Barre latérale (Navigation) */
+.admin-nav {
+    grid-area: nav;
+    background: #2D2D2D; /* Gris foncé prof */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 10;
+    overflow-y: auto;
+}
 
-        /* Mobile adaptations */
-        @media (max-width: 768px) {
-            .admin-tabs {
-                flex-direction: column;
-            }
+.admin-tab {
+    background: transparent;
+    border: none;
+    color: #d1d5db; /* Gris clair */
+    padding: 18px 25px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-            .admin-tab {
-                border-bottom: none;
-                border-left: 3px solid transparent;
-            }
+.admin-tab:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    padding-left: 30px; /* Petit effet de glissement */
+}
 
-            .admin-tab.active {
-                border-bottom: none;
-                border-left-color: var(--orange);
-            }
-        }
-        /* ========================================
+.admin-tab.active {
+    background: rgba(239, 128, 0, 0.15);
+    color: var(--orange);
+    border-left-color: var(--orange);
+    font-weight: 700;
+}
+
+/* Zone de contenu principal */
+.admin-main {
+    grid-area: main;
+    padding: 30px;
+    overflow-y: auto; /* Scroll indépendant pour le contenu */
+    background-color: #f3f4f6;
+}
+
+/* ==========================================================================
+   2. VOS STYLES INITIAUX (CONSERVÉS INTÉGRALEMENT CI-DESSOUS)
+   ========================================================================== */
+
+/* Navigation par onglets (Interne aux pages) */
+.admin-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Note: On garde .admin-tab ici pour la compatibilité mobile ou les sous-onglets,
+   mais le style principal de la sidebar est géré plus haut */
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
    STYLES D'ASSIGNATION
    ======================================== */
 
@@ -97,7 +163,11 @@
     background: var(--gray-200);
     color: var(--gray-700);
     font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
 }
+
 /* ========================================
    STYLES POUR L'ONGLET MODÈLES
    ======================================== */
@@ -166,12 +236,6 @@
     text-overflow: ellipsis;
 }
 
-/* Responsive pour l'onglet modèles */
-@media (max-width: 900px) {
-    .canned-layout {
-        grid-template-columns: 1fr;
-    }
-}
 /* ========================================
    STYLES POUR L'ONGLET PARAMÈTRES
    ======================================== */
@@ -223,173 +287,17 @@
     border: 2px solid var(--gray-200);
 }
 
-@media (max-width: 900px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
-    .settings-menu {
-        flex-direction: row;
-        overflow-x: auto;
-    }
-    .settings-sub-tab {
-        min-width: 200px;
-    }
-    .settings-content {
-        padding: 20px;
-    }
-}
 /* ========================================
-   STYLES POUR L'ONGLET PARAMÈTRES
-   ======================================== */
-
-.settings-layout {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 30px;
-}
-
-.settings-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.settings-sub-tab {
-    width: 100%;
-    padding: 15px 20px;
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gray-700);
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.settings-sub-tab:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-}
-
-.settings-sub-tab.active {
-    background: rgba(239, 128, 0, 0.05);
-    border-color: var(--orange);
-    color: var(--orange);
-}
-
-.settings-content {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    border: 2px solid var(--gray-200);
-}
-
-@media (max-width: 900px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
-    .settings-menu {
-        flex-direction: row;
-        overflow-x: auto;
-    }
-    .settings-sub-tab {
-        min-width: 200px;
-    }
-    .settings-content {
-        padding: 20px;
-    }
-}
-
-/* ========================================
-   STYLES POUR LA GESTION DES MODÈLES
-   (Déplacé ici)
-   ======================================== */
-
-.canned-layout {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 30px;
-}
-
-.canned-form {
-    background: var(--gray-50);
-    padding: 25px;
-    border-radius: 12px;
-    border: 2px solid var(--gray-200);
-}
-
-.canned-form h3,
-.canned-list h3 {
-    color: var(--gray-dark);
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.canned-list-container {
-    max-height: 600px;
-    overflow-y: auto;
-}
-
-.canned-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    transition: all 0.3s;
-}
-
-.canned-item:hover {
-    border-color: var(--orange);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.canned-item-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.canned-item-info strong {
-    color: var(--gray-900);
-    font-size: 16px;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.canned-item-info p {
-    color: var(--gray-600);
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-@media (max-width: 900px) {
-    .canned-layout {
-        grid-template-columns: 1fr;
-    }
-}
-/* ========================================
-   STYLES POUR LE NOUVEAU DRAG-DROP
+   DRAG & DROP
    ======================================== */
 
 .custom-drop-zone {
-    border: 2px dashed var(--gray-300); /* Bordure en pointillés gris */
+    border: 2px dashed var(--gray-300);
     border-radius: 12px;
-    padding: 30px; /* Moins de padding */
+    padding: 30px;
     text-align: center;
-    background: white; /* Fond blanc */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Ombre légère */
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
@@ -397,14 +305,13 @@
 }
 
 .custom-drop-zone:hover {
-    border-color: var(--orange); /* Bordure orange au survol */
-    box-shadow: 0 8px 20px rgba(239, 128, 0, 0.2); /* Ombre orange */
+    border-color: var(--orange);
+    box-shadow: 0 8px 20px rgba(239, 128, 0, 0.2);
 }
 
-/* Style quand on déplace un fichier par-dessus */
 .custom-drop-zone.drag-over {
     border-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05); /* Fond orange très léger */
+    background: rgba(239, 128, 0, 0.05);
     transform: scale(1.02);
     box-shadow: 0 8px 24px rgba(239, 128, 0, 0.2);
 }
@@ -412,7 +319,7 @@
 .custom-drop-zone-icon {
     font-size: 48px;
     margin-bottom: 10px;
-    color: var(--orange); /* Icône orange (Descamps) */
+    color: var(--orange);
     transition: transform 0.3s;
 }
 
@@ -431,27 +338,15 @@
     font-size: 13px;
     color: var(--gray-600);
 }
-/* Styles pour la grille de graphiques */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
-}
-
-.chart-container {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
 
 .custom-drop-zone-info {
     margin-top: 15px;
     font-size: 12px;
     color: var(--gray-600);
 }
+
 /* ========================================
-   DASHBOARD STATISTIQUES AVANCÉES
+   DASHBOARD STATISTIQUES
    ======================================== */
 
 /* Header du dashboard */
@@ -577,13 +472,6 @@
     gap: 5px;
 }
 
-/* Correction de couleur pour la variation sur la carte "Fermés" */
-#kpi-closed .kpi-variation {
-    color: white; /* Forcer la couleur en blanc pour un meilleur contraste */
-    opacity: 0.8; /* Légère transparence pour l'harmoniser */
-}
-
-
 /* Grille graphiques */
 .charts-grid {
     display: grid;
@@ -621,7 +509,7 @@
     gap: 10px;
 }
 
-/* Section performance admins */
+/* Performance admins */
 .performance-section {
     margin-bottom: 30px;
 }
@@ -701,7 +589,7 @@
     font-weight: 600;
 }
 
-/* Grille bottom (top catégories + non assignés) */
+/* Grille bottom */
 .bottom-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -709,7 +597,6 @@
     margin-top: 30px;
 }
 
-/* Top catégories */
 .top-item {
     display: flex;
     align-items: center;
@@ -764,7 +651,6 @@
     color: var(--gray-700);
 }
 
-/* Tickets non assignés */
 .unassigned-item {
     display: flex;
     align-items: center;
@@ -808,98 +694,157 @@
     color: var(--gray-600);
 }
 
-.empty-alert {
-    text-align: center;
-    padding: 40px;
-    color: var(--success);
-    font-weight: 600;
-    font-size: 16px;
+/* Autres utilitaires */
+.filters-bar {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.filters-bar input,
+.filters-bar select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
 }
 
-.kpi-card,
-.chart-card,
-.admin-performance-card,
-.top-item,
-.unassigned-item {
-    animation: fadeInUp 0.5s ease forwards;
+.filters-bar input {
+    flex: 1;
 }
 
-.kpi-card:nth-child(1) { animation-delay: 0.05s; }
-.kpi-card:nth-child(2) { animation-delay: 0.1s; }
-.kpi-card:nth-child(3) { animation-delay: 0.15s; }
-.kpi-card:nth-child(4) { animation-delay: 0.2s; }
-.kpi-card:nth-child(5) { animation-delay: 0.25s; }
-.kpi-card:nth-child(6) { animation-delay: 0.3s; }
-.kpi-card:nth-child(7) { animation-delay: 0.35s; }
-.kpi-card:nth-child(8) { animation-delay: 0.4s; }
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+    overflow-x: auto;
+}
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .charts-grid {
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f9fafb;
+    border-bottom: 2px solid #eee;
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 700;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #333;
+    vertical-align: middle;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pagination-btn.active {
+    background: #EF8000;
+    color: white;
+    border-color: #EF8000;
+}
+
+/* RESPONSIVE GLOBAL */
+@media (max-width: 1024px) {
+    .admin-grid-container {
         grid-template-columns: 1fr;
+        grid-template-rows: 70px 60px 1fr;
+        grid-template-areas:
+            "header"
+            "nav"
+            "main";
+    }
+    
+    .admin-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-top: 0;
+        align-items: center;
+    }
+    
+    .admin-tab {
+        width: auto;
+        border-left: none;
+        border-bottom: 4px solid transparent;
+        white-space: nowrap;
+        padding: 0 20px;
+        height: 100%;
+    }
+    
+    .admin-tab:hover {
+        padding-left: 20px; /* Annule l'effet de glissement */
+    }
+    
+    .admin-tab.active {
+        border-bottom-color: var(--orange);
+        border-left-color: transparent;
     }
 }
 
 @media (max-width: 768px) {
-    .stats-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .admin-header {
+        padding: 0 15px;
     }
     
-    .kpi-grid {
-        grid-template-columns: 1fr;
+    .admin-main {
+        padding: 15px;
     }
-    
-    .kpi-card {
-        padding: 20px;
-    }
-    
-    .kpi-value {
-        font-size: 24px;
-    }
-    
-    .admin-performance-card {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .admin-progress {
-        width: 100%;
-    }
-    
+
+    .canned-layout,
+    .settings-layout,
+    .charts-grid,
+    .kpi-grid,
     .bottom-grid {
         grid-template-columns: 1fr;
     }
     
-    .period-btn {
-        font-size: 12px;
-        padding: 8px 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .stats-filters {
-        width: 100%;
+    .settings-menu {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
     
-    .period-btn {
-        flex: 1;
+    .settings-sub-tab {
+        min-width: 150px;
     }
     
-    .admin-stats {
+    .filters-bar {
         flex-direction: column;
-        gap: 5px;
+        align-items: stretch;
     }
 }

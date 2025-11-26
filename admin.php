@@ -18,9 +18,9 @@ $admin_name = $_SESSION['admin_firstname'] ?? 'Admin';
 // On ferme l'écriture de session pour ne pas bloquer les requêtes parallèles
 session_write_close(); 
 
-// ============================================
-// 1. AFFICHAGE PAGE DE CONNEXION (SI PAS CONNECTÉ)
-// ============================================
+// ==============================================================================================
+// CAS 1 : ADMINISTRATEUR NON CONNECTÉ -> AFFICHER LE FORMULAIRE DE CONNEXION
+// ==============================================================================================
 if (!$isAdminLoggedIn) {
 ?>
 <!DOCTYPE html>
@@ -89,11 +89,11 @@ if (!$isAdminLoggedIn) {
             <form id="loginForm" onsubmit="loginAdmin(event)">
                 <div class="form-group">
                     <label>Adresse email</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" required autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
-                    <input type="password" id="password" required>
+                    <input type="password" id="password" required autocomplete="current-password">
                 </div>
                 <button type="submit" class="btn btn-primary" id="loginBtn">Se connecter</button>
             </form>
@@ -105,11 +105,10 @@ if (!$isAdminLoggedIn) {
     </div>
 
     <script>
-        // Script de connexion intégré pour éviter l'erreur "loginAdmin is not defined"
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         async function loginAdmin(e) {
-            e.preventDefault();
+            e.preventDefault(); // Empêche le rechargement de la page
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -119,7 +118,7 @@ if (!$isAdminLoggedIn) {
             // Reset UI
             errorDiv.style.display = 'none';
             btn.disabled = true;
-            btn.textContent = 'Connexion...';
+            btn.textContent = 'Connexion en cours...';
 
             try {
                 const res = await fetch('api.php?action=admin_login', {
@@ -131,23 +130,25 @@ if (!$isAdminLoggedIn) {
                     body: JSON.stringify({ email, password })
                 });
 
-                // Vérification si la réponse est du JSON
+                // Vérification robuste du type de contenu
                 const contentType = res.headers.get("content-type");
                 if (!contentType || !contentType.includes("application/json")) {
-                    throw new Error("Réponse serveur invalide (non-JSON). Vérifiez les logs PHP.");
+                    const text = await res.text();
+                    console.error("Réponse non-JSON reçue:", text);
+                    throw new Error("Erreur serveur (500 ou format invalide). Consultez la console.");
                 }
 
                 const data = await res.json();
 
                 if (data.success) {
-                    // Rechargement pour passer du mode "invité" au mode "admin"
+                    // Rechargement pour afficher le tableau de bord
                     window.location.reload();
                 } else {
                     showError(data.message || 'Erreur inconnue.');
                 }
             } catch (error) {
-                console.error('Erreur:', error);
-                showError('Erreur de connexion au serveur.');
+                console.error('Erreur JS:', error);
+                showError('Erreur de connexion au serveur. Vérifiez les logs PHP (config.php).');
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Se connecter';
@@ -163,12 +164,13 @@ if (!$isAdminLoggedIn) {
 </body>
 </html>
 <?php
+    // IMPORTANT : Arrêter le script ici pour ne pas afficher le tableau de bord en dessous
     exit();
 }
 
-// ============================================
-// 2. AFFICHAGE TABLEAU DE BORD (SI CONNECTÉ)
-// ============================================
+// ==============================================================================================
+// CAS 2 : ADMINISTRATEUR CONNECTÉ -> AFFICHER LE TABLEAU DE BORD
+// ==============================================================================================
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -267,6 +269,21 @@ if (!$isAdminLoggedIn) {
         </div>
     </div>
     
+    <div id="deleteAllModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3>Supprimer tous les tickets ?</h3>
+                <button class="close-modal" onclick="closeDeleteAllModal()">&times;</button>
+            </div>
+            <p style="color: var(--danger); font-weight: bold; margin: 20px 0;">⚠️ Attention : Cette action est irréversible !</p>
+            <p>Voulez-vous vraiment supprimer <strong>tous</strong> les tickets de la base de données ?</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeDeleteAllModal()">Annuler</button>
+                <button class="btn btn-danger" onclick="deleteAllTickets()">Oui, tout supprimer</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="inactivityModal" class="modal">
         <div class="modal-content" style="max-width: 450px; text-align: center;">
             <div class="modal-header">
@@ -280,7 +297,8 @@ if (!$isAdminLoggedIn) {
     <div id="overlay" class="overlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="js/drag-drop-upload.js"></script> <script src="js/admin-stats.js"></script>
+    <script src="js/drag-drop-upload.js"></script>
+    <script src="js/admin-stats.js"></script>
     <script src="js/file-viewer-system.js"></script>
     <script src="js/admin-script.js"></script>
 </body>

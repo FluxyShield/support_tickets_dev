@@ -3,24 +3,37 @@
  * ===================================================================
  * API - Logique d'Authentification (api/auth.php)
  * ===================================================================
+ * Contient toutes les fonctions liées à la connexion, inscription, etc.
+ * ===================================================================
  */
 
 if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
 
+// Vérifier que config.php est bien chargé
 if (!function_exists('sendEmail')) {
     require_once ROOT_PATH . '/config.php';
 }
 
+/**
+ * ⭐ AMÉLIORATION SÉCURITÉ : Valide la politique de mot de passe.
+ * @param string $password Le mot de passe à vérifier.
+ * @return bool True si le mot de passe est valide, false sinon.
+ */
 function validatePasswordPolicy($password) {
+    // Au moins 8 caractères
     if (strlen($password) < 8) return false;
+    // Au moins une lettre majuscule
     if (!preg_match('/[A-Z]/', $password)) return false;
+    // Au moins un chiffre
     if (!preg_match('/[0-9]/', $password)) return false;
+
     return true;
 }
 
 function register() {
+    // ⭐ SÉCURITÉ : Limiter la création de comptes (5 par heure par IP).
     checkRateLimit('register', 5, 3600);
 
     $input = getInput();
@@ -28,17 +41,20 @@ function register() {
     $lastname = sanitizeInput(trim($input['lastname'] ?? ''));
     $email = trim($input['email'] ?? '');
     $password = $input['password'] ?? '';
-    $confirmPassword = $input['confirmPassword'] ?? '';
+    $confirmPassword = $input['confirmPassword'] ?? ''; // ⭐ AJOUT SÉCURITÉ
 
+    // --- Validation des données ---
     if (empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
         jsonResponse(false, 'Tous les champs marqués d\'un * sont requis.');
     }
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur du prénom et du nom (min et max)
     if (strlen($firstname) < 2 || strlen($lastname) < 2) {
         jsonResponse(false, 'Le prénom et le nom doivent contenir au moins 2 caractères.');
     }
     if (strlen($firstname) > 100 || strlen($lastname) > 100) {
         jsonResponse(false, 'Le prénom et le nom ne peuvent pas dépasser 100 caractères.');
     }
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur de l'email
     if (strlen($email) > 255) {
         jsonResponse(false, 'L\'adresse email ne peut pas dépasser 255 caractères.');
     }
@@ -46,15 +62,18 @@ function register() {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         jsonResponse(false, 'L\'adresse email fournie n\'est pas valide.');
     }
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utilisation de la nouvelle politique de mot de passe
     if (!validatePasswordPolicy($password)) {
         jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
     }
+    // ⭐ AJOUT SÉCURITÉ : Valider la confirmation du mot de passe côté serveur
     if ($password !== $confirmPassword) {
         jsonResponse(false, 'Les mots de passe ne correspondent pas.');
     }
 
     $db = Database::getInstance()->getConnection();
 
+    // --- Vérifier si l'email existe déjà ---
     $email_hash = hashData($email);
     $stmt = $db->prepare("SELECT id FROM users WHERE email_hash = ?");
     $stmt->bind_param("s", $email_hash);
@@ -66,17 +85,21 @@ function register() {
     }
     $stmt->close();
 
+    // --- Préparation des données pour l'insertion ---
     $firstname_enc = encrypt($firstname);
     $lastname_enc = encrypt($lastname);
     $email_enc = encrypt($email);
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT (Argon2id sur PHP 7.2+, plus sécurisé que bcrypt)
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
+    // --- Insertion dans la base de données ---
     $stmt = $db->prepare("INSERT INTO users (firstname_encrypted, lastname_encrypted, email_encrypted, password_hash, email_hash, role) VALUES (?, ?, ?, ?, ?, 'user')");
     $stmt->bind_param("sssss", $firstname_enc, $lastname_enc, $email_enc, $password_hash, $email_hash);
 
     if ($stmt->execute()) {
         $user_id = $stmt->insert_id;
 
+        // Connecter automatiquement l'utilisateur après l'inscription
         $_SESSION['user_id'] = $user_id;
         $_SESSION['firstname'] = $firstname;
         $_SESSION['lastname'] = $lastname;
@@ -105,8 +128,9 @@ function login() {
 
     $db = Database::getInstance()->getConnection();
 
+    // On utilise le hash de l'email pour la recherche
     $email_hash = hashData($email);
-    $stmt = $db->prepare("SELECT id, password_hash, role, firstname_encrypted, lastname_encrypted, email_encrypted FROM users WHERE email_hash = ?");
+    $stmt = $db->prepare("SELECT id, password_hash, role, firstname_encrypted, lastname_encrypted FROM users WHERE email_hash = ?");
     $stmt->bind_param("s", $email_hash);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -114,21 +138,28 @@ function login() {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
 
+        // ⭐ AMÉLIORATION : Vérifier si c'est un admin qui essaie de se connecter
         if ($user['role'] === 'admin') {
+            // ⭐ SÉCURITÉ : Renvoyer un message générique pour ne pas révéler
+            // l'existence d'un compte admin (prévention de l'énumération d'utilisateurs).
             jsonResponse(false, 'Identifiants incorrects ou compte non trouvé.');
         }
 
         if (password_verify($password, $user['password_hash'])) {
+            // ⭐ SÉCURITÉ : Régénérer l'ID de session pour prévenir la fixation de session.
             session_regenerate_id(true);
 
+            // Le mot de passe est correct
             $firstname = decrypt($user['firstname_encrypted']);
             $lastname = decrypt($user['lastname_encrypted']);
             
+            // ⭐ CORRECTION : Initialiser la session pour l'utilisateur
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['firstname'] = $firstname;
             $_SESSION['lastname'] = $lastname;
+            // On stocke aussi l'email chiffré pour ne pas avoir à le redemander
             $_SESSION['email_encrypted'] = $user['email_encrypted'];
-            
+            // ⭐ FIN CORRECTION
             jsonResponse(true, 'Connexion réussie', [
                 'user' => [
                     'id' => $user['id'],
@@ -139,6 +170,7 @@ function login() {
         }
     }
 
+    // Si on arrive ici, l'email ou le mot de passe est incorrect
     jsonResponse(false, 'Identifiants incorrects ou compte non trouvé.');
 }
 
@@ -168,25 +200,27 @@ function admin_login() {
         jsonResponse(false, "Trop de tentatives de connexion. Veuillez réessayer dans {$minutes_remaining} minute(s).");
     }
 
-    // --- 2. Nettoyer les anciennes tentatives (CORRECTIF SQL) ---
-    // Utilisation de DATE_SUB pour compatibilité
+    // --- 2. Nettoyer les anciennes tentatives pour éviter l'encombrement ---
+    // ⭐ CORRECTION SQL : Utilisation de DATE_SUB au lieu de la syntaxe - INTERVAL
     $cleanup_minutes = LOGIN_ATTEMPT_WINDOW_MINUTES + LOGIN_LOCKOUT_TIME_MINUTES;
     $cleanup_stmt = $db->prepare("DELETE FROM login_attempts WHERE attempt_time < DATE_SUB(NOW(), INTERVAL ? MINUTE) AND locked_until IS NULL");
     $cleanup_stmt->bind_param("i", $cleanup_minutes);
     $cleanup_stmt->execute();
 
-    // --- 3. Compter les tentatives échouées récentes (CORRECTIF SQL) ---
+    // --- 3. Compter les tentatives échouées récentes pour cette IP/email ---
+    // ⭐ CORRECTION SQL : Utilisation de DATE_SUB
     $window_minutes = LOGIN_ATTEMPT_WINDOW_MINUTES;
-    // Utilisation de DATE_SUB pour compatibilité
     $recent_attempts_stmt = $db->prepare("SELECT COUNT(id) as count FROM login_attempts WHERE (ip_address = ? OR email_attempted = ?) AND attempt_time > DATE_SUB(NOW(), INTERVAL ? MINUTE) AND locked_until IS NULL");
     $recent_attempts_stmt->bind_param("ssi", $ip_address, $email, $window_minutes);
     $recent_attempts_stmt->execute();
     $recent_attempts_count = $recent_attempts_stmt->get_result()->fetch_assoc()['count'];
 
     if ($recent_attempts_count >= MAX_LOGIN_ATTEMPTS) {
-        $locked_until = date('Y-m-d H:i:s', time() + (LOGIN_LOCKOUT_TIME_MINUTES * 60));
-        $lock_stmt = $db->prepare("INSERT INTO login_attempts (ip_address, email_attempted, locked_until) VALUES (?, ?, ?)");
-        $lock_stmt->bind_param("sss", $ip_address, $email, $locked_until);
+        // Verrouiller l'accès
+        // ⭐ CORRECTION SQL : Utilisation de DATE_ADD pour plus de sûreté
+        $lock_stmt = $db->prepare("INSERT INTO login_attempts (ip_address, email_attempted, locked_until) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))");
+        $lockout_minutes = LOGIN_LOCKOUT_TIME_MINUTES;
+        $lock_stmt->bind_param("ssi", $ip_address, $email, $lockout_minutes);
         $lock_stmt->execute();
         
         jsonResponse(false, "Trop de tentatives de connexion. Votre accès est temporairement bloqué pour " . LOGIN_LOCKOUT_TIME_MINUTES . " minutes.");
@@ -195,6 +229,7 @@ function admin_login() {
     // --- 4. Procéder à la connexion normale ---
 
     $db = Database::getInstance()->getConnection();
+
     $email_hash = hashData($email);
     $stmt = $db->prepare("SELECT * FROM users WHERE email_hash = ? AND role = 'admin'");
     $stmt->bind_param("s", $email_hash);
@@ -205,18 +240,25 @@ function admin_login() {
         $user = $result->fetch_assoc();
 
         if (password_verify($password, $user['password_hash'])) {
+            // ⭐ SÉCURITÉ : Régénérer l'ID de session pour prévenir la fixation de session.
             session_regenerate_id(true);
 
-            // Connexion réussie : Effacer toutes les tentatives échouées
+            // --- 5. Connexion réussie : Effacer toutes les tentatives échouées pour cette IP/email ---
             $clear_attempts_stmt = $db->prepare("DELETE FROM login_attempts WHERE ip_address = ? OR email_attempted = ?");
             $clear_attempts_stmt->bind_param("ss", $ip_address, $email);
             $clear_attempts_stmt->execute();
 
+            // Le mot de passe est correct
+            // ⭐ CORRECTION : Initialiser la session pour l'administrateur
             $_SESSION['admin_id'] = $user['id'];
             $_SESSION['admin_firstname'] = decrypt($user['firstname_encrypted']);
             $_SESSION['admin_lastname'] = decrypt($user['lastname_encrypted']);
+            // ⭐ FIN CORRECTION
 
+            // ⭐ AUDIT : Enregistrer la connexion réussie de l'admin
             logAuditEvent('ADMIN_LOGIN_SUCCESS', $user['id']);
+
+            // ⭐ SÉCURITÉ : Journaliser la tentative de connexion réussie
             Log::getLogger()->info('Connexion admin réussie', ['email' => $email, 'ip' => $ip_address]);
 
             jsonResponse(true, 'Connexion réussie', [
@@ -230,6 +272,7 @@ function admin_login() {
         }
     }
 
+    // Si on arrive ici, l'email ou le mot de passe est incorrect
     // --- 6. Connexion échouée : Enregistrer la tentative ---
     $record_attempt_stmt = $db->prepare("INSERT INTO login_attempts (ip_address, email_attempted) VALUES (?, ?)");
     $record_attempt_stmt->bind_param("ss", $ip_address, $email);
@@ -246,6 +289,7 @@ function admin_invite() {
     $input = getInput();
     $email = trim($input['email'] ?? '');
 
+    // ⭐ SÉCURITÉ : Valider que l'email n'est pas vide avant de le traiter
     if (empty($email)) {
         jsonResponse(false, 'L\'adresse email est requise.');
     }
@@ -257,6 +301,7 @@ function admin_invite() {
     $db = Database::getInstance()->getConnection();
     $email_hash = hashData($email);
 
+    // Vérifier si un utilisateur ou une invitation existe déjà
     $stmt = $db->prepare("SELECT id FROM users WHERE email_hash = ?");
     $stmt->bind_param("s", $email_hash);
     $stmt->execute();
@@ -265,13 +310,15 @@ function admin_invite() {
     }
     $stmt->close();
 
+    // ⭐ CORRECTION : Supprimer les anciennes invitations pour cet email
     $stmt = $db->prepare("DELETE FROM admin_invitations WHERE email_hash = ?");
     $stmt->bind_param("s", $email_hash);
     $stmt->execute();
 
+    // Générer un token sécurisé
     $token = bin2hex(random_bytes(32));
     $token_hash = hashData($token);
-    $expires_at = date('Y-m-d H:i:s', time() + 86400);
+    $expires_at = date('Y-m-d H:i:s', time() + 86400); // 24 heures
 
     $email_enc = encrypt($email);
     $stmt = $db->prepare("INSERT INTO admin_invitations (email_encrypted, email_hash, token_hash, expires_at) VALUES (?, ?, ?, ?)");
@@ -291,7 +338,9 @@ function admin_invite() {
             <p style='font-size: 12px; color: #888;'>Si vous ne parvenez pas à cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :<br><a href='{$invitationLink}' style='color: #EF8000;'>{$invitationLink}</a></p>
            <p style='margin-top: 20px;'>Si vous avez reçu cet email par erreur, veuillez l'ignorer et le supprimer.</p>";
 
+        // Envoi de l'email
         if (sendEmail($email, 'Invitation Administrateur', $emailBody)) {
+            // ⭐ AUDIT : Enregistrer l'invitation
             logAuditEvent('ADMIN_INVITE_SENT', $inviting_admin_id, ['invited_email' => $email]);
             jsonResponse(true, 'Invitation envoyée avec succès.');
         } else {
@@ -309,12 +358,17 @@ function admin_register_complete() {
     $lastname = sanitizeInput(trim($input['lastname'] ?? ''));
     $password = $input['password'] ?? '';
 
+    // ⭐ SÉCURITÉ : Valider la longueur minimale du prénom et du nom côté serveur
     if (strlen($firstname) < 2 || strlen($lastname) < 2) {
         jsonResponse(false, 'Le prénom et le nom doivent contenir au moins 2 caractères.');
     }
+
+    // ⭐ SÉCURITÉ RENFORCÉE : Valider la longueur du mot de passe avant la politique complexe
     if (strlen($password) < 8) {
         jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères.');
     }
+
+    // ⭐ SÉCURITÉ : La politique de mot de passe est maintenant validée côté serveur.
     if (!validatePasswordPolicy($password)) {
         jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
     }
@@ -337,6 +391,7 @@ function admin_register_complete() {
 
     $firstname_enc = encrypt($firstname);
     $lastname_enc = encrypt($lastname);
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utiliser PASSWORD_DEFAULT
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     $stmt = $db->prepare("INSERT INTO users (firstname_encrypted, lastname_encrypted, email_encrypted, password_hash, email_hash, role) VALUES (?, ?, ?, ?, ?, 'admin')");
@@ -347,6 +402,7 @@ function admin_register_complete() {
         $deleteStmt->bind_param("s", $email_hash);
         $deleteStmt->execute();
 
+        // ⭐ AUDIT : Enregistrer la création du nouveau compte admin
         logAuditEvent('ADMIN_ACCOUNT_CREATED', $stmt->insert_id, ['email' => decrypt($email_enc)]);
         jsonResponse(true, 'Compte admin créé avec succès. Vous pouvez maintenant vous connecter.');
     } else {
@@ -355,6 +411,7 @@ function admin_register_complete() {
 }
 
 function request_password_reset() {
+    // ⭐ SÉCURITÉ : Limiter les demandes de réinitialisation (3 par heure par IP).
     checkRateLimit('password_reset_request', 3, 3600);
 
     $input = getInput();
@@ -367,20 +424,24 @@ function request_password_reset() {
     $db = Database::getInstance()->getConnection();
     $email_hash = hashData($email);
 
+    // On vérifie si un utilisateur (admin ou user) existe avec cet email
     $stmt = $db->prepare("SELECT id FROM users WHERE email_hash = ?");
     $stmt->bind_param("s", $email_hash);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows === 1) {
+        // Générer un token sécurisé
         $token = bin2hex(random_bytes(32));
         $token_hash = hashData($token);
-        $expires_at = date('Y-m-d H:i:s', time() + 900);
+        $expires_at = date('Y-m-d H:i:s', time() + 900); // Valide 15 minutes
 
+        // ⭐ CORRECTION : Insérer le jeton dans la table `password_resets`
         $insertStmt = $db->prepare("INSERT INTO password_resets (email_hash, token_hash, expires_at) VALUES (?, ?, ?)");
         $insertStmt->bind_param("sss", $email_hash, $token_hash, $expires_at);
         $insertStmt->execute();
  
+        // Envoyer l'email avec le token en clair
         $resetLink = APP_URL_BASE . '/reset_password.php?token=' . $token;
         $emailBody = "
             <h2 style='color: #4A4A49;'>Réinitialisation de mot de passe</h2>
@@ -390,6 +451,7 @@ function request_password_reset() {
         sendEmail($email, 'Réinitialisation de votre mot de passe', $emailBody);
     }
 
+    // Pour des raisons de sécurité, on envoie toujours une réponse positive
     jsonResponse(true, 'Si un compte est associé à cet email, un lien de réinitialisation a été envoyé.');
 }
 
@@ -401,6 +463,7 @@ function perform_password_reset() {
     if (empty($token) || empty($password)) {
         jsonResponse(false, 'Jeton et mot de passe requis.');
     }
+    // ⭐ AMÉLIORATION SÉCURITÉ : Utilisation de la nouvelle politique de mot de passe
     if (!validatePasswordPolicy($password)) {
         jsonResponse(false, 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
     }
@@ -408,6 +471,7 @@ function perform_password_reset() {
     $db = Database::getInstance()->getConnection();
     $token_hash = hashData($token);
 
+    // ⭐ CORRECTION : Vérifier le jeton dans la table `password_resets`
     $stmt = $db->prepare("SELECT email_hash FROM password_resets WHERE token_hash = ? AND expires_at > NOW()");
     $stmt->bind_param("s", $token_hash);
     $stmt->execute();
@@ -417,11 +481,13 @@ function perform_password_reset() {
         $reset_request = $result->fetch_assoc();
         $email_hash = $reset_request['email_hash'];
 
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        // Mettre à jour le mot de passe
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
         $updateStmt = $db->prepare("UPDATE users SET password_hash = ? WHERE email_hash = ?");
         $updateStmt->bind_param("ss", $password_hash, $email_hash);
         
         if ($updateStmt->execute()) {
+            // Le mot de passe est mis à jour, on peut supprimer le jeton
             $deleteStmt = $db->prepare("DELETE FROM password_resets WHERE email_hash = ?");
             $deleteStmt->bind_param("s", $email_hash);
             $deleteStmt->execute();
