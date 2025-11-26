@@ -631,188 +631,202 @@ function ticket_reopen() {
     // Vérifier si la mise à jour a bien eu lieu
     if ($stmt->affected_rows > 0) {
         jsonResponse(true, 'Ticket ré-ouvert.');
+    if ($ticket_info) {
+        $user_email = decrypt($ticket_info['email_encrypted']);
+        $user_firstname = decrypt($ticket_info['firstname_encrypted']);
+        $ticket_subject = decrypt($ticket_info['subject_encrypted']);
+        $ticket_link = APP_URL_BASE . '/ticket_details.php?id=' . $id;
+
+        $email_subject = "[Ticket #{$id}] Votre ticket est maintenant : {$status}";
+        $email_body = "
+            <h2 style='color: #4A4A49;'>Mise à jour de votre ticket</h2>
+            <p>Bonjour " . htmlspecialchars($user_firstname) . ",</p>
+            <p>Le statut de votre ticket <strong>#{$id} - " . htmlspecialchars($ticket_subject) . "</strong> a été mis à jour. Il est maintenant : <strong>{$status}</strong>.</p>
+            <p style='text-align: center; margin: 30px 0;'><a href='{$ticket_link}' style='background: #EF8000; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Voir mon ticket</a></p>
+        ";
+        $email_sent = sendEmail($user_email, $email_subject, $email_body);
+    }
+
+    // 4. Répondre à l'admin (maintenant que l'email est parti)
+    if ($email_sent) {
+        jsonResponse(true, 'Statut du ticket mis à jour et email envoyé.');
     } else {
-        jsonResponse(false, 'Impossible de ré-ouvrir le ticket (il est peut-être fermé depuis plus de 24h, déjà ouvert, ou vous n\'êtes pas le propriétaire).');
+        jsonResponse(true, 'Statut mis à jour (mais l\'email de notification a échoué).');
+    }
+    
+    // ==========================================================
+    // === FIN DE LA CORRECTION ===
+    // ==========================================================
+}
+
+function ticket_delete() {
+    requireAuth('admin');
+    $input = getInput();
+    $id = (int)($input['id'] ?? 0);
+
+    if (empty($id)) {
+        jsonResponse(false, 'ID de ticket requis.');
+    }
+
+    $db = Database::getInstance()->getConnection();
+    $stmt = $db->prepare("DELETE FROM tickets WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        // ⭐ AUDIT : Enregistrer la suppression du ticket
+        logAuditEvent('TICKET_DELETE', $id);
+
+        jsonResponse(true, 'Ticket supprimé.');
+    } else {
+        jsonResponse(false, 'Erreur lors de la suppression.');
     }
 }
 
 /**
- * ===================================================================
- * ⭐ NOUVEAU : Endpoint de statistiques avancées optimisé
- * ===================================================================
- * Calcule toutes les statistiques côté serveur pour des performances maximales.
+ * ⭐ NOUVEAU : Récupère les infos d'un ticket via son jeton d'avis.
  */
-function get_advanced_stats() {
-    requireAuth('admin');
+function get_ticket_by_review_token() {
+    $token = $_GET['token'] ?? '';
+    if (empty($token)) {
+        jsonResponse(false, 'Jeton manquant.');
+    }
+
+    $db = Database::getInstance()->getConnection();
+    $stmt = $db->prepare("SELECT id, subject_encrypted, review_id, review_rating FROM tickets WHERE review_token = ?");
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        jsonResponse(false, 'Jeton d\'avis invalide ou expiré.');
+    }
+
+    $ticket = $result->fetch_assoc();
+    $ticket['subject'] = decrypt($ticket['subject_encrypted']);
+
+    jsonResponse(true, 'Ticket trouvé.', ['ticket' => $ticket]);
+}
+
+/**
+ * ⭐ NOUVEAU : Soumet un avis via un jeton.
+ */
+function submit_review_by_token() {
+    $input = getInput();
+    
+    // ⭐ SÉCURITÉ RENFORCÉE : Validation stricte côté serveur
+    $token = trim($input['token'] ?? '');
+    if (empty($token) || strlen($token) > 255) {
+        jsonResponse(false, 'Jeton invalide.');
+    }
+    
+    // ⭐ SÉCURITÉ : Valider et nettoyer la note
+    $rating = filter_var($input['rating'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+    if ($rating === false || $rating < 1 || $rating > 5) {
+        jsonResponse(false, 'La note doit être un nombre entier entre 1 et 5.');
+    }
+    
+    // ⭐ SÉCURITÉ : Valider et nettoyer le commentaire
+    $comment = trim($input['comment'] ?? '');
+    $comment = sanitizeInput($comment);
+    
+    // ⭐ SÉCURITÉ : Valider la longueur du commentaire (max 2000 caractères)
+    if (strlen($comment) > 2000) {
+        jsonResponse(false, 'Le commentaire ne peut pas dépasser 2000 caractères.');
+    }
+
+
+    $db = Database::getInstance()->getConnection();
+    $stmt = $db->prepare("SELECT id, user_id, review_id FROM tickets WHERE review_token = ?");
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $ticket = $stmt->get_result()->fetch_assoc();
+
+    if (!$ticket) {
+        jsonResponse(false, 'Jeton d\'avis invalide.');
+    }
+
+    if ($ticket['review_id']) {
+        jsonResponse(false, 'Un avis a déjà été soumis pour ce ticket.');
+    }
+
+    $comment_enc = encrypt($comment);
+    $insert_stmt = $db->prepare("INSERT INTO ticket_reviews (ticket_id, user_id, rating, comment_encrypted) VALUES (?, ?, ?, ?)");
+    $insert_stmt->bind_param("iiis", $ticket['id'], $ticket['user_id'], $rating, $comment_enc);
+    
+    if ($insert_stmt->execute()) {
+        $review_id = $insert_stmt->insert_id;
+        // ⭐ SÉCURITÉ : Utiliser une requête préparée pour éviter l'injection SQL
+        $ticket_id = (int)$ticket['id'];
+        $update_stmt = $db->prepare("UPDATE tickets SET review_id = ?, review_rating = ?, review_token = NULL WHERE id = ?");
+        $update_stmt->bind_param("iii", $review_id, $rating, $ticket_id);
+        $update_stmt->execute();
+        jsonResponse(true, 'Avis enregistré avec succès.');
+    } else {
+        jsonResponse(false, 'Erreur lors de l\'enregistrement de l\'avis.');
+    }
+}
+
+function ticket_update_description() {
+    requireAuth('user');
+    $input = getInput();
+    $ticket_id = (int)($input['ticket_id'] ?? 0);
+    $description = trim($input['description'] ?? '');
+    $user_id = (int)$_SESSION['user_id'];
+
+    if (empty($ticket_id) || empty($description)) {
+        jsonResponse(false, 'Données invalides.');
+    }
+
+    // ⭐ AMÉLIORATION SÉCURITÉ : Valider la longueur de la description (min et max)
+    if (strlen($description) < 10) {
+        jsonResponse(false, 'La description doit contenir au moins 10 caractères.');
+    }
+    if (strlen($description) > 10000) {
+        jsonResponse(false, 'La description ne peut pas dépasser 10000 caractères.');
+    }
+    
+    // ⭐ AMÉLIORATION SÉCURITÉ : Nettoyer la description après validation de longueur
+    $description = sanitizeInput($description);
+
+    $db = Database::getInstance()->getConnection();
+    $description_enc = encrypt($description);
+
+    // On vérifie que l'utilisateur est le propriétaire et que la description n'a pas déjà été modifiée
+    $stmt = $db->prepare("UPDATE tickets SET description_encrypted = ?, description_modified = 1 WHERE id = ? AND user_id = ? AND description_modified = 0");
+    $stmt->bind_param("sii", $description_enc, $ticket_id, $user_id);
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
+        jsonResponse(true, 'Description mise à jour.');
+    } else {
+        jsonResponse(false, 'Impossible de mettre à jour la description (déjà modifiée ou ticket non trouvé).');
+    }
+}
+
+function ticket_reopen() {
+    requireAuth('user');
+    $input = getInput();
+    $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $user_id = (int)$_SESSION['user_id'];
+
+    // ⭐ SÉCURITÉ RENFORCÉE : Valider que l'ID est un entier positif.
+    if (!$id) {
+        jsonResponse(false, 'ID de ticket requis.');
+    }
+
     $db = Database::getInstance()->getConnection();
 
-    $period = isset($_GET['period']) ? (int)$_GET['period'] : 30;
-    $date_condition = "created_at >= NOW() - INTERVAL ? DAY";
-
-    $stats = [];
-
-    // --- KPIs ---
-    $kpi_query = "
-        SELECT
-            (SELECT COUNT(id) FROM tickets WHERE {$date_condition}) as total_tickets,
-            (SELECT COUNT(id) FROM tickets WHERE status = 'Ouvert' AND {$date_condition}) as open_tickets,
-            (SELECT COUNT(id) FROM tickets WHERE status = 'En cours' AND {$date_condition}) as in_progress_tickets,
-            (SELECT COUNT(id) FROM tickets WHERE status = 'Fermé' AND closed_at >= NOW() - INTERVAL ? DAY) as closed_tickets,
-            (SELECT COUNT(id) FROM tickets WHERE assigned_to IS NULL AND status != 'Fermé') as unassigned_tickets,
-            (SELECT AVG(rating) FROM ticket_reviews WHERE {$date_condition}) as satisfaction_rate,
-            (SELECT COUNT(id) FROM ticket_reviews WHERE {$date_condition}) as total_reviews,
-            (SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, closed_at)) FROM tickets WHERE status = 'Fermé' AND closed_at >= NOW() - INTERVAL ? DAY) as avg_resolution_time
-    ";
-    $stmt = $db->prepare($kpi_query);
-    $stmt->bind_param("iiiiii", $period, $period, $period, $period, $period, $period);
+    // ⭐ SÉCURITÉ RENFORCÉE : Vérifier que l'utilisateur est le propriétaire ET que le ticket est bien 'Fermé'.
+    // ⭐ NOUVEAU : Ajouter une condition pour que la réouverture ne soit possible que dans les 24h suivant la fermeture.
+    // Cela rend la manipulation côté client inutile.
+    $stmt = $db->prepare("UPDATE tickets SET status = 'Ouvert', closed_at = NULL WHERE id = ? AND user_id = ? AND status = 'Fermé' AND closed_at >= NOW() - INTERVAL 24 HOUR");
+    $stmt->bind_param("ii", $id, $user_id);
     $stmt->execute();
-    $kpis = $stmt->get_result()->fetch_assoc();
-    $stats['kpis'] = [
-        'total_tickets' => (int)$kpis['total_tickets'],
-        'open_tickets' => (int)$kpis['open_tickets'],
-        'in_progress_tickets' => (int)$kpis['in_progress_tickets'],
-        'closed_tickets' => (int)$kpis['closed_tickets'],
-        'unassigned_tickets' => (int)$kpis['unassigned_tickets'],
-        'satisfaction_rate' => round((float)$kpis['satisfaction_rate'], 2),
-        'total_reviews' => (int)$kpis['total_reviews'],
-        'avg_resolution_time' => round((float)$kpis['avg_resolution_time'], 1)
-    ];
 
-    // --- Timeline (Évolution) ---
-    $timeline_query = "
-        SELECT
-            DATE(created_at) as date,
-            COUNT(id) as total,
-            SUM(CASE WHEN status = 'Fermé' THEN 1 ELSE 0 END) as closed
-        FROM tickets
-        WHERE {$date_condition}
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-    ";
-    $stmt = $db->prepare($timeline_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $timeline_result = $stmt->get_result();
-    $stats['timeline'] = [];
-    while ($row = $timeline_result->fetch_assoc()) {
-        $stats['timeline'][] = [
-            'date' => $row['date'],
-            'total' => (int)$row['total'],
-            'closed' => (int)$row['closed']
-        ];
+    // Vérifier si la mise à jour a bien eu lieu
+    if ($stmt->affected_rows > 0) {
+        jsonResponse(true, 'Ticket ré-ouvert.');
+    } else {
+        jsonResponse(false, 'Impossible de ré-ouvrir le ticket (il est peut-être fermé depuis plus de 24h, déjà ouvert, ou vous n\'êtes pas le propriétaire).');
     }
-
-    // --- Répartitions (Catégorie & Priorité) ---
-    $category_query = "SELECT category_encrypted as name, COUNT(id) as count FROM tickets WHERE {$date_condition} GROUP BY category_encrypted";
-    $stmt = $db->prepare($category_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $cat_result = $stmt->get_result();
-    $stats['categories'] = [];
-    while ($row = $cat_result->fetch_assoc()) {
-        $stats['categories'][] = ['name' => decrypt($row['name']), 'count' => (int)$row['count']];
-    }
-
-    $priority_query = "SELECT priority as name, COUNT(id) as count FROM tickets WHERE {$date_condition} GROUP BY priority";
-    $stmt = $db->prepare($priority_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $prio_result = $stmt->get_result();
-    $stats['priorities'] = [];
-    while ($row = $prio_result->fetch_assoc()) {
-        $stats['priorities'][] = ['name' => $row['name'], 'count' => (int)$row['count']];
-    }
-
-    // --- Satisfaction ---
-    $satisfaction_query = "SELECT rating, COUNT(id) as count FROM ticket_reviews WHERE {$date_condition} GROUP BY rating";
-    $stmt = $db->prepare($satisfaction_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $sat_result = $stmt->get_result();
-    $stats['satisfaction'] = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-    while ($row = $sat_result->fetch_assoc()) {
-        $stats['satisfaction'][(int)$row['rating']] = (int)$row['count'];
-    }
-
-    // --- Performance Admins ---
-    $perf_query = "
-        SELECT
-            u.id,
-            CONCAT(u.firstname_encrypted, ' ', u.lastname_encrypted) as name_encrypted,
-            COUNT(t.id) as total_assigned,
-            SUM(CASE WHEN t.status = 'Fermé' THEN 1 ELSE 0 END) as resolved,
-            AVG(TIMESTAMPDIFF(HOUR, t.created_at, t.closed_at)) as avg_resolution_time
-        FROM users u
-        JOIN tickets t ON u.id = t.assigned_to
-        WHERE u.role = 'admin' AND t.created_at >= NOW() - INTERVAL ? DAY
-        GROUP BY u.id
-        ORDER BY resolved DESC
-    ";
-    $stmt = $db->prepare($perf_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $perf_result = $stmt->get_result();
-    $stats['admins_performance'] = [];
-    while ($row = $perf_result->fetch_assoc()) {
-        $stats['admins_performance'][] = [
-            'name' => decrypt($row['name_encrypted']),
-            'total_assigned' => (int)$row['total_assigned'],
-            'resolved' => (int)$row['resolved'],
-            'avg_resolution_time' => round((float)$row['avg_resolution_time'], 1)
-        ];
-    }
-
-    // --- Heures de pointe ---
-    $peak_query = "SELECT DAYOFWEEK(created_at) as day, HOUR(created_at) as hour, COUNT(id) as count FROM tickets WHERE {$date_condition} GROUP BY day, hour";
-    $stmt = $db->prepare($peak_query);
-    $stmt->bind_param("i", $period);
-    $stmt->execute();
-    $peak_result = $stmt->get_result();
-    $days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-    $peak_data = [];
-    foreach ($days as $day) {
-        $peak_data[] = ['name' => $day, 'data' => array_fill(0, 24, 0)];
-    }
-    while ($row = $peak_result->fetch_assoc()) {
-        $dayIndex = (int)$row['day'] - 1;
-        $hourIndex = (int)$row['hour'];
-        $peak_data[$dayIndex]['data'][$hourIndex] = (int)$row['count'];
-    }
-    $stats['peak_hours'] = $peak_data;
-
-    // --- Tendances (pour les KPIs) ---
-    // Cette partie est simplifiée, une vraie analyse de tendance serait plus complexe
-    $stats['trends'] = [
-        'created' => ['variation' => rand(-15, 25)],
-        'resolved' => ['variation' => rand(-10, 30)]
-    ];
-
-    // --- Top 5 Catégories ---
-    $stats['top_categories'] = array_slice($stats['categories'], 0, 5);
-
-    // --- Tickets non assignés ---
-    // ⭐ SÉCURITÉ : Utiliser une requête préparée (même si pas d'entrée utilisateur, bonne pratique)
-    $status_not_closed = 'Fermé';
-    $unassigned_query = "
-        SELECT id, subject_encrypted, priority, TIMESTAMPDIFF(HOUR, created_at, NOW()) as waiting_time
-        FROM tickets
-        WHERE assigned_to IS NULL AND status != ?
-        ORDER BY created_at ASC
-        LIMIT 5
-    ";
-    $unassigned_stmt = $db->prepare($unassigned_query);
-    $unassigned_stmt->bind_param("s", $status_not_closed);
-    $unassigned_stmt->execute();
-    $unassigned_result = $unassigned_stmt->get_result();
-    $stats['unassigned'] = [];
-    while ($row = $unassigned_result->fetch_assoc()) {
-        $stats['unassigned'][] = [
-            'id' => $row['id'],
-            'subject' => decrypt($row['subject_encrypted']),
-            'priority' => $row['priority'],
-            'waiting_time' => (int)$row['waiting_time']
-        ];
-    }
-
-    jsonResponse(true, 'Statistiques avancées récupérées.', $stats);
 }
