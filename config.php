@@ -8,6 +8,25 @@ if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé.');
 }
 
+// Gestion globale des erreurs fatales (pour éviter les 500 silencieuses)
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_CORE_ERROR || $error['type'] === E_COMPILE_ERROR)) {
+        // Si une erreur fatale survient, on renvoie du JSON propre
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(500);
+        }
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erreur critique serveur : ' . $error['message'],
+            'file' => $error['file'],
+            'line' => $error['line']
+        ]);
+        exit;
+    }
+});
+
 // Gestion de session optimisée
 function initialize_session() {
     if (session_status() === PHP_SESSION_NONE) {
@@ -169,15 +188,25 @@ function getIpAddress() {
 }
 
 function logAuditEvent($action, $target_id = null, $details = null) {
-    $db = Database::getInstance()->getConnection();
-    $admin_id = $_SESSION['admin_id'] ?? null;
-    $ip_address = getIpAddress();
-    $details_json = $details ? json_encode($details) : null;
+    try {
+        $db = Database::getInstance()->getConnection();
+        $admin_id = $_SESSION['admin_id'] ?? null;
+        $ip_address = getIpAddress();
+        $details_json = $details ? json_encode($details) : null;
 
-    $stmt = $db->prepare("INSERT INTO audit_log (admin_id, action, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?)");
-    // "isiss" : integer, string, integer, string, string
-    $stmt->bind_param("isiss", $admin_id, $action, $target_id, $details_json, $ip_address);
-    $stmt->execute();
+        $stmt = $db->prepare("INSERT INTO audit_log (admin_id, action, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?)");
+        if ($stmt) {
+            // "isiss" : integer, string, integer, string, string
+            $stmt->bind_param("isiss", $admin_id, $action, $target_id, $details_json, $ip_address);
+            $stmt->execute();
+        } else {
+            // Si la table n'existe pas ou erreur SQL, on log dans le fichier mais on ne plante pas
+            Log::getLogger()->error("Impossible de préparer la requête d'audit", ['error' => $db->error]);
+        }
+    } catch (Throwable $e) {
+        // Fail-safe complet pour l'audit
+        error_log("Audit Log Error: " . $e->getMessage());
+    }
 }
 
 function checkRateLimit($action, $limit, $window_seconds) {
@@ -202,6 +231,37 @@ function checkRateLimit($action, $limit, $window_seconds) {
     $stmt = $db->prepare("INSERT INTO rate_limits (action, ip_address) VALUES (?, ?)");
     $stmt->bind_param("ss", $action, $ip_address);
     $stmt->execute();
+}
+
+function sendEmail($to, $subject, $body) {
+    $mail = new PHPMailer(true);
+    try {
+        // Configuration SMTP
+        $mail->isSMTP();
+        $mail->Host       = $_ENV['MAIL_HOST'] ?? 'smtp.example.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $_ENV['MAIL_USERNAME'] ?? 'user@example.com';
+        $mail->Password   = $_ENV['MAIL_PASSWORD'] ?? 'secret';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+        $mail->CharSet    = 'UTF-8';
+
+        // Destinataires
+        $mail->setFrom($_ENV['MAIL_FROM_EMAIL'] ?? 'noreply@example.com', $_ENV['APP_NAME'] ?? 'Support');
+        $mail->addAddress($to);
+
+        // Contenu
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->AltBody = strip_tags($body);
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        Log::getLogger()->error("Erreur envoi email: {$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 function setJsonHeaders() {
