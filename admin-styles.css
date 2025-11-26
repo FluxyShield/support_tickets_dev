@@ -1,273 +1,78 @@
-/* ==========================================================================
-   1. STRUCTURE & LAYOUT (CORRECTION AFFICHAGE)
-   ========================================================================== */
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #F3F4F6;
-    overflow-x: hidden;
-    font-family: 'Source Sans Pro', sans-serif;
-}
+        /* Navigation par onglets */
+        .admin-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-/* La grille principale qui range le menu à gauche et le contenu à droite */
-.admin-grid-container {
-    display: grid;
-    grid-template-columns: 260px 1fr; 
-    grid-template-rows: 70px 1fr;
-    grid-template-areas: 
-        "header header"
-        "nav main";
-    height: 100vh;
-    width: 100vw;
-}
+        .admin-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
-/* ==========================================================================
-   2. HEADER (EN-TÊTE)
-   ========================================================================== */
-.admin-header {
-    grid-area: header;
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    z-index: 20;
-    border-bottom: 3px solid #EF8000;
-}
+        .admin-tab:hover {
+            background: var(--gray-50);
+        }
 
-.header-left .logo {
-    font-size: 22px;
-    font-weight: 800;
-    color: #2D2D2D;
-    letter-spacing: -0.5px;
-}
+        .admin-tab.active {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+            background: rgba(239, 128, 0, 0.05);
+        }
 
-.admin-profile {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-weight: 600;
-    color: #4A4A49;
-}
+        .tab-content {
+            display: none;
+        }
 
-/* ==========================================================================
-   3. SIDEBAR (MENU GAUCHE)
-   ========================================================================== */
-.admin-nav {
-    grid-area: nav;
-    background: #1F2937;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding-top: 20px;
-    z-index: 10;
-}
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
 
-/* Style des boutons du menu principal */
-.admin-nav .admin-tab {
-    background: transparent;
-    border: none;
-    color: #9CA3AF;
-    padding: 18px 25px;
-    text-align: left;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 500;
-    transition: all 0.2s;
-    border-left: 4px solid transparent;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-.admin-nav .admin-tab:hover {
-    background: rgba(255,255,255,0.05);
-    color: white;
-    padding-left: 28px;
-}
+        /* Mobile adaptations */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
 
-.admin-nav .admin-tab.active {
-    background: rgba(239, 128, 0, 0.15);
-    color: #EF8000;
-    border-left-color: #EF8000;
-    font-weight: 700;
-}
+            .admin-tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
 
-/* ==========================================================================
-   4. CONTENU PRINCIPAL
-   ========================================================================== */
-.admin-main {
-    grid-area: main;
-    padding: 30px;
-    overflow-y: auto;
-}
+            .admin-tab.active {
+                border-bottom: none;
+                border-left-color: var(--orange);
+            }
+        }
+        /* ========================================
+   STYLES D'ASSIGNATION
+   ======================================== */
 
-.tab-content {
-    display: none;
-    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tab-content.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================================================
-   5. CARTES KPI (STATISTIQUES) - DESIGN PROPRE
-   ========================================================================== */
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 25px;
-    margin-bottom: 35px;
-}
-
-.kpi-card {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border-top: 4px solid transparent;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s;
-}
-
-.kpi-card:hover { transform: translateY(-3px); }
-.kpi-card:nth-child(1) { border-top-color: #6366F1; }
-.kpi-card:nth-child(2) { border-top-color: #3B82F6; }
-.kpi-card:nth-child(3) { border-top-color: #EF8000; }
-.kpi-card:nth-child(4) { border-top-color: #10B981; }
-
-.kpi-card h4 {
-    margin: 0 0 10px 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: #6B7280;
-    text-transform: uppercase;
-}
-
-.kpi-card p {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 800;
-    color: #111827;
-}
-
-/* ==========================================================================
-   6. FILTRES & RECHERCHE
-   ========================================================================== */
-.filters-bar {
-    background: white;
-    padding: 15px 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    flex-wrap: wrap;
-    border: 1px solid #E5E7EB;
-}
-
-.filters-bar input,
-.filters-bar select {
-    padding: 10px 15px;
-    border: 1px solid #D1D5DB;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-}
-
-.filters-bar input:focus, .filters-bar select:focus {
-    border-color: #EF8000;
-    box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
-}
-
-.filters-bar input { flex: 1; }
-
-/* ==========================================================================
-   7. TABLEAUX
-   ========================================================================== */
-.table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    border: 1px solid #E5E7EB;
-    overflow: hidden;
-    overflow-x: auto;
-}
-
-table { width: 100%; border-collapse: collapse; }
-thead { background: #F9FAFB; }
-
-th {
-    padding: 18px 24px;
-    text-align: left;
-    font-size: 12px;
-    text-transform: uppercase;
-    color: #6B7280;
-    font-weight: 700;
-    border-bottom: 2px solid #E5E7EB;
-}
-
-td {
-    padding: 16px 24px;
-    border-bottom: 1px solid #F3F4F6;
-    font-size: 14px;
-    color: #1F2937;
-    vertical-align: middle;
-}
-
-tr:hover { background-color: #F9FAFB; }
-
-/* ==========================================================================
-   8. COMPOSANTS SPÉCIFIQUES (VOTRE CODE ORIGINAL RESTAURÉ)
-   ========================================================================== */
-
-/* --- Onglets internes (Paramètres, etc) --- */
-.admin-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 30px;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border: 1px solid #E5E7EB;
-}
-
-.admin-tabs .admin-tab { /* Style spécifique pour les onglets internes */
-    color: #4B5563;
-    background: white;
-    border-bottom: 3px solid transparent;
-    justify-content: center;
-}
-
-.admin-tabs .admin-tab:hover {
-    background: #F9FAFB;
-    color: #111827;
-    padding-left: 25px; /* Pas de slide ici */
-}
-
-.admin-tabs .admin-tab.active {
-    color: #EF8000;
-    border-bottom-color: #EF8000;
-    border-left-color: transparent;
-    background: #FFF7ED;
-}
-
-/* --- Zone d'Assignation --- */
 .assignment-section {
-    background: #F9FAFB;
-    border: 1px solid #E5E7EB;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
     border-radius: 12px;
     padding: 20px;
 }
@@ -278,19 +83,25 @@ tr:hover { background-color: #F9FAFB; }
     align-items: center;
 }
 
-.assignment-body select { flex: 1; }
-.assignment-actions { display: flex; gap: 10px; }
-
-.badge-assigned {
-    background: #E5E7EB;
-    color: #374151;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
+.assignment-body select {
+    flex: 1;
 }
 
-/* --- Modèles de Réponse (Canned) --- */
+.assignment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Badge pour admin assigné */
+.badge-assigned {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    font-weight: 600;
+}
+/* ========================================
+   STYLES POUR L'ONGLET MODÈLES
+   ======================================== */
+
 .canned-layout {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -298,18 +109,17 @@ tr:hover { background-color: #F9FAFB; }
 }
 
 .canned-form {
-    background: white;
+    background: var(--gray-50);
     padding: 25px;
     border-radius: 12px;
-    border: 1px solid #E5E7EB;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 2px solid var(--gray-200);
 }
 
-.canned-form h3, .canned-list h3 {
-    color: #111827;
-    font-size: 18px;
+.canned-form h3,
+.canned-list h3 {
+    color: var(--gray-dark);
+    font-size: 20px;
     margin-bottom: 20px;
-    font-weight: 700;
 }
 
 .canned-list-container {
@@ -324,32 +134,48 @@ tr:hover { background-color: #F9FAFB; }
     gap: 15px;
     padding: 20px;
     background: white;
-    border: 1px solid #E5E7EB;
+    border: 2px solid var(--gray-200);
     border-radius: 8px;
     margin-bottom: 15px;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 
 .canned-item:hover {
-    border-color: #EF8000;
-    box-shadow: 0 4px 6px rgba(239, 128, 0, 0.1);
+    border-color: var(--orange);
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
     transform: translateY(-2px);
 }
 
+.canned-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .canned-item-info strong {
-    color: #111827;
+    color: var(--gray-900);
     font-size: 16px;
     display: block;
     margin-bottom: 5px;
 }
 
 .canned-item-info p {
-    color: #6B7280;
+    color: var(--gray-600);
     font-size: 14px;
-    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* --- Paramètres (Settings) --- */
+/* Responsive pour l'onglet modèles */
+@media (max-width: 900px) {
+    .canned-layout {
+        grid-template-columns: 1fr;
+    }
+}
+/* ========================================
+   STYLES POUR L'ONGLET PARAMÈTRES
+   ======================================== */
+
 .settings-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
@@ -365,65 +191,400 @@ tr:hover { background-color: #F9FAFB; }
 .settings-sub-tab {
     width: 100%;
     padding: 15px 20px;
-    background: white;
-    border: 1px solid #E5E7EB;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
     border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    color: #374151;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-700);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
     text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .settings-sub-tab:hover {
-    background: #F9FAFB;
-    border-color: #D1D5DB;
+    background: var(--gray-100);
+    border-color: var(--gray-400);
 }
 
 .settings-sub-tab.active {
-    background: #FFF7ED;
-    border-color: #EF8000;
-    color: #C2410C;
-    font-weight: 600;
+    background: rgba(239, 128, 0, 0.05);
+    border-color: var(--orange);
+    color: var(--orange);
 }
 
 .settings-content {
     background: white;
     padding: 30px;
     border-radius: 12px;
-    border: 1px solid #E5E7EB;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 2px solid var(--gray-200);
 }
 
-/* --- Drag & Drop --- */
-.custom-drop-zone {
-    border: 2px dashed #D1D5DB;
-    border-radius: 12px;
+@media (max-width: 900px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+    .settings-menu {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    .settings-sub-tab {
+        min-width: 200px;
+    }
+    .settings-content {
+        padding: 20px;
+    }
+}
+/* ========================================
+   STYLES POUR L'ONGLET PARAMÈTRES
+   ======================================== */
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 30px;
+}
+
+.settings-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-sub-tab {
+    width: 100%;
+    padding: 15px 20px;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-sub-tab:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+}
+
+.settings-sub-tab.active {
+    background: rgba(239, 128, 0, 0.05);
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.settings-content {
+    background: white;
     padding: 30px;
+    border-radius: 12px;
+    border: 2px solid var(--gray-200);
+}
+
+@media (max-width: 900px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+    .settings-menu {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    .settings-sub-tab {
+        min-width: 200px;
+    }
+    .settings-content {
+        padding: 20px;
+    }
+}
+
+/* ========================================
+   STYLES POUR LA GESTION DES MODÈLES
+   (Déplacé ici)
+   ======================================== */
+
+.canned-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+}
+
+.canned-form {
+    background: var(--gray-50);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--gray-200);
+}
+
+.canned-form h3,
+.canned-list h3 {
+    color: var(--gray-dark);
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.canned-list-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.canned-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.canned-item:hover {
+    border-color: var(--orange);
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.canned-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.canned-item-info strong {
+    color: var(--gray-900);
+    font-size: 16px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.canned-item-info p {
+    color: var(--gray-600);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 900px) {
+    .canned-layout {
+        grid-template-columns: 1fr;
+    }
+}
+/* ========================================
+   STYLES POUR LE NOUVEAU DRAG-DROP
+   ======================================== */
+
+.custom-drop-zone {
+    border: 2px dashed var(--gray-300); /* Bordure en pointillés gris */
+    border-radius: 12px;
+    padding: 30px; /* Moins de padding */
     text-align: center;
-    background: #F9FAFB;
+    background: white; /* Fond blanc */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Ombre légère */
     transition: all 0.3s ease;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .custom-drop-zone:hover {
-    border-color: #EF8000;
-    background: #FFF7ED;
+    border-color: var(--orange); /* Bordure orange au survol */
+    box-shadow: 0 8px 20px rgba(239, 128, 0, 0.2); /* Ombre orange */
+}
+
+/* Style quand on déplace un fichier par-dessus */
+.custom-drop-zone.drag-over {
+    border-color: var(--orange);
+    background: rgba(239, 128, 0, 0.05); /* Fond orange très léger */
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(239, 128, 0, 0.2);
 }
 
 .custom-drop-zone-icon {
     font-size: 48px;
     margin-bottom: 10px;
-    color: #9CA3AF;
+    color: var(--orange); /* Icône orange (Descamps) */
+    transition: transform 0.3s;
 }
 
 .custom-drop-zone:hover .custom-drop-zone-icon {
-    color: #EF8000;
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(-5px);
 }
 
-/* --- Charts Grid --- */
+.custom-drop-zone-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 5px;
+}
+
+.custom-drop-zone-subtext {
+    font-size: 13px;
+    color: var(--gray-600);
+}
+/* Styles pour la grille de graphiques */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.custom-drop-zone-info {
+    margin-top: 15px;
+    font-size: 12px;
+    color: var(--gray-600);
+}
+/* ========================================
+   DASHBOARD STATISTIQUES AVANCÉES
+   ======================================== */
+
+/* Header du dashboard */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.stats-header h2 {
+    color: var(--gray-900);
+    font-size: 28px;
+    margin: 0;
+}
+
+.stats-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.period-btn {
+    padding: 10px 20px;
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gray-700);
+    transition: all 0.3s;
+}
+
+.period-btn:hover {
+    border-color: var(--orange);
+    background: rgba(239, 128, 0, 0.05);
+}
+
+.period-btn.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
+}
+
+/* Grille KPI */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.kpi-card {
+    background: linear-gradient(135deg, var(--gray-dark) 0%, var(--gray-medium) 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    transition: all 0.5s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+}
+
+.kpi-card:hover::before {
+    top: -25%;
+    right: -25%;
+}
+
+.kpi-icon {
+    font-size: 48px;
+    position: relative;
+    z-index: 1;
+}
+
+.kpi-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.kpi-label {
+    font-size: 14px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-variation {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Correction de couleur pour la variation sur la carte "Fermés" */
+#kpi-closed .kpi-variation {
+    color: white; /* Forcer la couleur en blanc pour un meilleur contraste */
+    opacity: 0.8; /* Légère transparence pour l'harmoniser */
+}
+
+
+/* Grille graphiques */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -433,29 +594,40 @@ tr:hover { background-color: #F9FAFB; }
 
 .chart-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s;
+}
+
+.chart-card:hover {
+    box-shadow: 0 8px 24px rgba(239, 128, 0, 0.15);
+    border-color: var(--orange);
 }
 
 .chart-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #E5E7EB;
+    border-bottom: 2px solid var(--gray-100);
 }
 
 .chart-header h3 {
-    color: #111827;
+    color: var(--gray-900);
     font-size: 18px;
     margin: 0;
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* --- Performance Admins --- */
-.performance-section { margin-bottom: 30px; }
+/* Section performance admins */
+.performance-section {
+    margin-bottom: 30px;
+}
+
 .performance-section h3 {
-    color: #111827;
+    color: var(--gray-900);
     font-size: 20px;
     margin-bottom: 20px;
 }
@@ -468,43 +640,50 @@ tr:hover { background-color: #F9FAFB; }
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 15px;
-    border: 1px solid #E5E7EB;
+    border: 2px solid var(--gray-200);
     transition: all 0.3s;
 }
 
 .admin-performance-card:hover {
-    border-color: #EF8000;
+    border-color: var(--orange);
     transform: translateX(5px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
 }
 
 .admin-rank {
-    font-size: 28px;
-    font-weight: 800;
-    color: #D1D5DB;
-    min-width: 50px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gray-400);
+    min-width: 60px;
     text-align: center;
 }
 
-.admin-info { flex: 1; }
+.admin-info {
+    flex: 1;
+}
 
 .admin-name {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 16px;
-    color: #111827;
-    margin-bottom: 5px;
+    color: var(--gray-900);
+    margin-bottom: 8px;
 }
 
 .admin-stats {
     display: flex;
     gap: 15px;
     font-size: 13px;
-    color: #6B7280;
+    color: var(--gray-600);
+    flex-wrap: wrap;
+}
+
+.admin-progress {
+    min-width: 200px;
 }
 
 .progress-bar {
-    height: 8px;
-    background: #E5E7EB;
+    height: 12px;
+    background: var(--gray-200);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 5px;
@@ -512,11 +691,17 @@ tr:hover { background-color: #F9FAFB; }
 
 .progress-fill {
     height: 100%;
-    background: #EF8000;
+    background: var(--orange);
     transition: width 1s ease;
 }
 
-/* --- Bottom Grid (Tops & Unassigned) --- */
+.progress-label {
+    font-size: 12px;
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+/* Grille bottom (top catégories + non assignés) */
 .bottom-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -524,159 +709,197 @@ tr:hover { background-color: #F9FAFB; }
     margin-top: 30px;
 }
 
+/* Top catégories */
 .top-item {
     display: flex;
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: white;
-    border: 1px solid #E5E7EB;
+    background: var(--gray-50);
     border-radius: 10px;
     margin-bottom: 12px;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 
 .top-item:hover {
-    border-color: #EF8000;
+    background: rgba(239, 128, 0, 0.05);
     transform: translateX(5px);
 }
 
 .top-rank {
-    font-size: 20px;
-    font-weight: 800;
-    color: #EF8000;
-    min-width: 30px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 40px;
+    text-align: center;
+}
+
+.top-info {
+    flex: 1;
+}
+
+.top-name {
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 8px;
 }
 
 .top-bar {
-    height: 6px;
-    background: #E5E7EB;
+    height: 8px;
+    background: var(--gray-200);
     border-radius: 10px;
     overflow: hidden;
 }
 
 .top-bar-fill {
     height: 100%;
-    background: #EF8000;
+    background: linear-gradient(90deg, var(--orange), #D67200);
+    border-radius: 10px;
+    transition: width 1s ease;
 }
 
+.top-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-700);
+}
+
+/* Tickets non assignés */
 .unassigned-item {
     display: flex;
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: #FEF2F2; /* Fond rouge très pâle pour l'urgence */
+    background: var(--gray-50);
     border-radius: 10px;
     margin-bottom: 12px;
-    border-left: 4px solid #EF4444;
+    border-left: 4px solid var(--orange);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 
 .unassigned-item:hover {
-    background: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: rgba(239, 128, 0, 0.05);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
 }
 
 .unassigned-id {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
-    color: #EF4444;
+    color: var(--orange);
+}
+
+.unassigned-info {
+    flex: 1;
 }
 
 .unassigned-subject {
     font-weight: 600;
-    color: #111827;
+    color: var(--gray-900);
+    margin-bottom: 5px;
 }
 
-/* --- Pagination --- */
-.pagination {
-    margin-top: 25px;
+.unassigned-meta {
     display: flex;
-    justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--gray-600);
 }
 
-.pagination-btn {
-    padding: 8px 14px;
-    background: white;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #374151;
-    font-weight: 500;
-    transition: all 0.2s;
+.empty-alert {
+    text-align: center;
+    padding: 40px;
+    color: var(--success);
+    font-weight: 600;
+    font-size: 16px;
 }
 
-.pagination-btn:hover:not(:disabled) {
-    background: #F9FAFB;
-    border-color: #9CA3AF;
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.pagination-btn.active {
-    background: #EF8000;
-    color: white;
-    border-color: #EF8000;
+.kpi-card,
+.chart-card,
+.admin-performance-card,
+.top-item,
+.unassigned-item {
+    animation: fadeInUp 0.5s ease forwards;
 }
 
-/* ==========================================================================
-   9. RESPONSIVE
-   ========================================================================== */
-@media (max-width: 1024px) {
-    .admin-grid-container {
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+.kpi-card:nth-child(5) { animation-delay: 0.25s; }
+.kpi-card:nth-child(6) { animation-delay: 0.3s; }
+.kpi-card:nth-child(7) { animation-delay: 0.35s; }
+.kpi-card:nth-child(8) { animation-delay: 0.4s; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .charts-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: 70px auto 1fr;
-        grid-template-areas:
-            "header"
-            "nav"
-            "main";
-    }
-    
-    .admin-nav {
-        flex-direction: row;
-        overflow-x: auto;
-        padding-top: 0;
-        background: #1F2937;
-    }
-    
-    .admin-nav .admin-tab {
-        width: auto;
-        border-left: none;
-        border-bottom: 4px solid transparent;
-        white-space: nowrap;
-        padding: 0 20px;
-        height: 60px;
-    }
-    
-    .admin-nav .admin-tab.active {
-        border-bottom-color: #EF8000;
-        border-left-color: transparent;
-        background: rgba(255,255,255,0.05);
     }
 }
 
 @media (max-width: 768px) {
-    .admin-header { padding: 0 15px; }
-    .admin-main { padding: 15px; }
-    
-    .canned-layout,
-    .settings-layout,
-    .charts-grid,
-    .kpi-grid,
+    .stats-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kpi-card {
+        padding: 20px;
+    }
+
+    .kpi-value {
+        font-size: 24px;
+    }
+
+    .admin-performance-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-progress {
+        width: 100%;
+    }
+
     .bottom-grid {
         grid-template-columns: 1fr;
     }
-    
-    .filters-bar { flex-direction: column; align-items: stretch; }
-    .filters-bar input { width: 100%; }
-    
-    .settings-menu {
-        flex-direction: row;
-        overflow-x: auto;
-        padding-bottom: 10px;
+
+    .period-btn {
+        font-size: 12px;
+        padding: 8px 15px;
     }
-    
-    .settings-sub-tab {
-        min-width: 150px;
+}
+
+@media (max-width: 480px) {
+    .stats-filters {
+        width: 100%;
+    }
+
+    .period-btn {
+        flex: 1;
+    }
+
+    .admin-stats {
+        flex-direction: column;
+        gap: 5px;
     }
 }
