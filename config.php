@@ -2,44 +2,30 @@
 /**
  * @file config.php
  * @brief Fichier de configuration principal de l'application.
- *
- * Ce fichier est le cœur de la configuration du système de tickets. Il est responsable de :
- * - L'initialisation des sessions avec des paramètres de sécurité.
- * - Le chargement des dépendances via Composer.
- * - La lecture des variables d'environnement depuis le fichier .env.
- * - La définition des constantes de configuration (base de données, clés, URL).
- * - La mise en place de la connexion à la base de données via une classe singleton (Database).
- * - Le chargement des paramètres dynamiques de l'application depuis la base de données.
- * - La configuration du système de logging (Monolog).
- * - La fourniture de fonctions utilitaires globales : chiffrement/déchiffrement, hashing, envoi d'emails (PHPMailer),
- *   gestion des en-têtes de sécurité (CSP, HSTS), et nettoyage des entrées.
  */
 
 if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé.');
 }
+
 function initialize_session() {
     if (session_status() === PHP_SESSION_NONE) {
         ini_set('session.cookie_httponly', 1);
         ini_set('session.use_only_cookies', 1);
-        ini_set('session.cookie_samesite', 'Lax'); // Lax est plus compatible avec les redirections externes
-        // ⭐ AMÉLIORATION SÉCURITÉ : Configuration de l'expiration de session
-        ini_set('session.gc_maxlifetime', 1800); // 30 minutes en secondes
+        ini_set('session.cookie_samesite', 'Lax'); 
+        ini_set('session.gc_maxlifetime', 1800); // 30 minutes
         session_start();
     }
 
-    // ⭐ AMÉLIORATION SÉCURITÉ : Vérifier et gérer l'expiration de session
-    $session_timeout = 1800; // 30 minutes en secondes
+    // Gestion de l'expiration de session
+    $session_timeout = 1800; 
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $session_timeout)) {
-        // Session expirée, détruire et redémarrer
         session_unset();
         session_destroy();
         session_start();
-        // Régénérer le token CSRF après destruction
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
     
-    // Mettre à jour le timestamp de dernière activité
     $_SESSION['last_activity'] = time();
 
     if (empty($_SESSION['csrf_token'])) {
@@ -157,9 +143,22 @@ class Log {
 
     public static function getLogger() {
         if (!self::$logger) {
+            // ⭐ CORRECTION : Création automatique du dossier logs s'il n'existe pas
+            $logDir = __DIR__ . '/logs';
+            if (!is_dir($logDir)) {
+                if (!mkdir($logDir, 0755, true)) {
+                    // Si on ne peut pas créer le dossier, on retourne un logger null silencieux ou on gère l'erreur
+                    // Pour éviter le crash complet, on utilise error_log natif en fallback temporaire
+                    error_log("Impossible de créer le dossier logs dans " . $logDir);
+                }
+            }
+
             self::$logger = new Logger('app');
-            self::$logger->pushHandler(new StreamHandler(__DIR__ . '/logs/critical.log', Logger::CRITICAL));
-            self::$logger->pushHandler(new StreamHandler(__DIR__ . '/logs/app.log', Logger::INFO));
+            // Vérification que le dossier est inscriptible
+            if (is_dir($logDir) && is_writable($logDir)) {
+                self::$logger->pushHandler(new StreamHandler($logDir . '/critical.log', Logger::CRITICAL));
+                self::$logger->pushHandler(new StreamHandler($logDir . '/app.log', Logger::INFO));
+            }
         }
         return self::$logger;
     }
@@ -205,7 +204,7 @@ function setSecurityHeaders() {
     header('Referrer-Policy: strict-origin-when-cross-origin');
 
     $csp = "default-src 'self'; ";
-    $csp .= "script-src 'self' https://cdn.jsdelivr.net/npm/apexcharts; ";
+    $csp .= "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/apexcharts; "; // Ajout 'unsafe-inline' si nécessaire pour certains scripts inlines
     $csp .= "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ";
     $csp .= "font-src 'self' https://fonts.gstatic.com; ";
     $csp .= "img-src 'self' data:; ";
@@ -274,7 +273,6 @@ function sendEmail($to, $subject, $body, $altBody = '') {
         $mail->AltBody = $altBody ?: strip_tags($fullBody);
 
         $mail->send();
-        error_log("✅ Email envoyé avec succès à $to via Office365");
         return true;
 
     } catch (Exception $e) {
@@ -294,28 +292,20 @@ function getIpAddress() {
     return filter_var($ip, FILTER_VALIDATE_IP);
 }
 
-/**
- * ⭐ SÉCURITÉ : Rate limiting pour prévenir les abus
- * @param string $action L'action à limiter (ex: 'register', 'password_reset_request')
- * @param int $max_attempts Nombre maximum de tentatives
- * @param int $window_seconds Fenêtre de temps en secondes
- * @throws Exception Si la limite est dépassée
- */
 function checkRateLimit($action, $max_attempts, $window_seconds) {
     try {
         $ip_address = getIpAddress();
         if (!$ip_address) {
-            $ip_address = '0.0.0.0'; // Fallback si IP non valide
+            $ip_address = '0.0.0.0';
         }
         
         $db = Database::getInstance()->getConnection();
         
-        // Nettoyer les anciennes entrées
+        // Utilisation de DATE_SUB pour compatibilité SQL standard
         $cleanup_stmt = $db->prepare("DELETE FROM rate_limits WHERE action = ? AND created_at < DATE_SUB(NOW(), INTERVAL ? SECOND)");
         $cleanup_stmt->bind_param("si", $action, $window_seconds);
         $cleanup_stmt->execute();
         
-        // Compter les tentatives récentes
         $check_stmt = $db->prepare("SELECT COUNT(*) as count FROM rate_limits WHERE action = ? AND ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)");
         $check_stmt->bind_param("ssi", $action, $ip_address, $window_seconds);
         $check_stmt->execute();
@@ -328,27 +318,18 @@ function checkRateLimit($action, $max_attempts, $window_seconds) {
             throw new Exception("Trop de tentatives. Veuillez réessayer dans {$remaining_minutes} minute(s).");
         }
         
-        // Enregistrer cette tentative
         $insert_stmt = $db->prepare("INSERT INTO rate_limits (action, ip_address, created_at) VALUES (?, ?, NOW())");
         $insert_stmt->bind_param("ss", $action, $ip_address);
         $insert_stmt->execute();
         
     } catch (Exception $e) {
-        // Si c'est notre exception de rate limit, on la relance
         if (strpos($e->getMessage(), 'Trop de tentatives') !== false) {
             jsonResponse(false, $e->getMessage());
         }
-        // Sinon, on log l'erreur mais on continue (ne pas bloquer si la table n'existe pas encore)
         Log::getLogger()->error('Erreur rate limiting', ['action' => $action, 'error' => $e->getMessage()]);
     }
 }
 
-/**
- * ⭐ SÉCURITÉ : Journalisation des actions d'audit
- * @param string $action L'action effectuée (ex: 'ADMIN_LOGIN_SUCCESS', 'TICKET_DELETE')
- * @param int|null $target_id L'ID de la ressource concernée (optionnel)
- * @param array $details Détails supplémentaires (optionnel)
- */
 function logAuditEvent($action, $target_id = null, $details = []) {
     try {
         $admin_id = $_SESSION['admin_id'] ?? null;
@@ -356,13 +337,11 @@ function logAuditEvent($action, $target_id = null, $details = []) {
         
         $db = Database::getInstance()->getConnection();
         
-        // Valider que l'action est une chaîne valide
         $action = substr(trim($action), 0, 255);
         if (empty($action)) {
-            return; // Action invalide, on ignore
+            return;
         }
         
-        // Valider target_id
         if ($target_id !== null) {
             $target_id = filter_var($target_id, FILTER_VALIDATE_INT);
             if ($target_id === false) {
@@ -370,7 +349,6 @@ function logAuditEvent($action, $target_id = null, $details = []) {
             }
         }
         
-        // Valider admin_id
         if ($admin_id !== null) {
             $admin_id = filter_var($admin_id, FILTER_VALIDATE_INT);
             if ($admin_id === false) {
@@ -378,7 +356,6 @@ function logAuditEvent($action, $target_id = null, $details = []) {
             }
         }
         
-        // Encoder les détails en JSON
         $details_json = !empty($details) ? json_encode($details, JSON_UNESCAPED_UNICODE) : null;
         
         $stmt = $db->prepare("INSERT INTO audit_log (admin_id, action, target_id, details, ip_address, timestamp) VALUES (?, ?, ?, ?, ?, NOW())");
@@ -386,7 +363,6 @@ function logAuditEvent($action, $target_id = null, $details = []) {
         $stmt->execute();
         
     } catch (Exception $e) {
-        // Ne pas bloquer l'application si l'audit échoue, juste logger
         Log::getLogger()->error('Erreur audit log', ['action' => $action, 'error' => $e->getMessage()]);
     }
 }
