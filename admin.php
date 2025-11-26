@@ -2,11 +2,6 @@
 /**
  * @file admin.php
  * @brief Panneau d'administration et page de connexion pour les administrateurs.
- *
- * Ce fichier a un double rôle :
- * 1. Si l'administrateur n'est pas connecté, il affiche un formulaire de connexion sécurisé.
- * 2. Si l'administrateur est connecté, il affiche le tableau de bord complet de l'application,
- *    qui est une interface dynamique (SPA) gérée par `js/admin-script.js`.
  */
 
 define('ROOT_PATH', __DIR__);
@@ -18,10 +13,8 @@ $isAdminLoggedIn = isset($_SESSION['admin_id']);
 $csrf_token = $_SESSION['csrf_token'] ?? '';
 $admin_name = $_SESSION['admin_firstname'] ?? 'Admin';
 
-// La session est libérée après avoir récupéré les infos nécessaires pour le rendu initial
 session_write_close(); 
 
-// Si l'admin n'est pas connecté, on affiche la page de connexion.
 if (!$isAdminLoggedIn) {
 ?>
 <!DOCTYPE html>
@@ -30,8 +23,178 @@ if (!$isAdminLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
-    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="style.css">
     <title>Connexion Admin - Support Ticketing</title>
+    <style>
+        /* ============================================
+           STYLES POUR LA PAGE DE CONNEXION ADMIN
+           ============================================ */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .login-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-bottom: 4px solid #EF8000;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .login-content {
+            padding: 40px;
+        }
+
+        .login-content .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-content .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-dark);
+        }
+
+        .login-content .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        .login-content .form-group input:focus {
+            outline: none;
+            border-color: #EF8000;
+            box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
+        }
+
+        .login-content .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-content .btn-primary:hover {
+            background: linear-gradient(135deg, #4A4A49 0%, #4A4A49 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 74, 73, 0.4);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #991b1b;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .login-content > div:last-child {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-content > div:last-child a {
+            color: #EF8000;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .login-content > div:last-child a:hover {
+            color: #D67200;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .login-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
 <body class="login-body">
     <div class="login-container">
@@ -50,21 +213,22 @@ if (!$isAdminLoggedIn) {
                     <label>Mot de passe</label>
                     <input type="password" id="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Se connecter</button>
+                <button type="submit" class="btn btn-primary">Se connecter</button>
             </form>
-            <div style="text-align:center;margin-top:20px;">
-                <a href="forgot_password.php?role=admin" style="color:var(--primary);text-decoration:none;">Mot de passe oublié ?</a>
+            <div>
+                <a href="forgot_password.php?role=admin">Mot de passe oublié ?</a>
             </div>
         </div>
     </div>
-    <script src="js/login-script.js"></script>
 </body>
 </html>
 <?php
-    exit(); // On arrête le script ici.
+    exit();
 }
 
-// Si on arrive ici, c'est que l'admin est connecté. On affiche le tableau de bord.
+// ============================================
+// TABLEAU DE BORD ADMIN (Code existant)
+// ============================================
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -73,6 +237,7 @@ if (!$isAdminLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
     <title>Tableau de bord - Support</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin-styles.css">
 </head>
 <body>

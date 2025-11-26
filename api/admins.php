@@ -98,7 +98,15 @@ function assign_ticket() {
 
         // ⭐ NOUVEAU : Envoi d'un email de notification à l'admin assigné
         $target_admin_email = decrypt($target_admin_res['email_encrypted']);
-        $assigning_admin_name = $_SESSION['admin_firstname'] . ' ' . $_SESSION['admin_lastname'];
+
+        // ⭐ CORRECTIF SÉCURITÉ : Ne pas se fier à la session qui peut être fermée.
+        // Récupérer le nom de l'admin qui assigne depuis la BDD pour être sûr.
+        $assigning_admin_id = $_SESSION['admin_id'];
+        $assigning_admin_stmt = $db->prepare("SELECT firstname_encrypted, lastname_encrypted FROM users WHERE id = ?");
+        $assigning_admin_stmt->bind_param("i", $assigning_admin_id);
+        $assigning_admin_stmt->execute();
+        $assigning_admin_res = $assigning_admin_stmt->get_result()->fetch_assoc();
+        $assigning_admin_name = decrypt($assigning_admin_res['firstname_encrypted']) . ' ' . decrypt($assigning_admin_res['lastname_encrypted']);
 
         // Récupérer les détails du ticket pour l'email
         $ticket_stmt = $db->prepare("SELECT subject_encrypted FROM tickets WHERE id = ?");

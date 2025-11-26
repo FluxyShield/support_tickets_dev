@@ -1416,6 +1416,5 @@ class InactivityManager {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 }
-
 const inactivityManager = new InactivityManager(15, 2); 
 let adminDragDrop;
