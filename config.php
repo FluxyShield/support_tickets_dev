@@ -168,6 +168,42 @@ function getIpAddress() {
     return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 }
 
+function logAuditEvent($action, $target_id = null, $details = null) {
+    $db = Database::getInstance()->getConnection();
+    $admin_id = $_SESSION['admin_id'] ?? null;
+    $ip_address = getIpAddress();
+    $details_json = $details ? json_encode($details) : null;
+
+    $stmt = $db->prepare("INSERT INTO audit_log (admin_id, action, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?)");
+    // "isiss" : integer, string, integer, string, string
+    $stmt->bind_param("isiss", $admin_id, $action, $target_id, $details_json, $ip_address);
+    $stmt->execute();
+}
+
+function checkRateLimit($action, $limit, $window_seconds) {
+    $db = Database::getInstance()->getConnection();
+    $ip_address = getIpAddress();
+    $window_seconds = (int)$window_seconds;
+    
+    // Nettoyage des anciennes entrées (pourrait être fait via un cron, mais ici on le fait à la volée)
+    $db->query("DELETE FROM rate_limits WHERE created_at < DATE_SUB(NOW(), INTERVAL $window_seconds SECOND)");
+    
+    // Vérification du nombre de tentatives
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM rate_limits WHERE action = ? AND ip_address = ?");
+    $stmt->bind_param("ss", $action, $ip_address);
+    $stmt->execute();
+    $count = $stmt->get_result()->fetch_assoc()['count'];
+    
+    if ($count >= $limit) {
+        jsonResponse(false, "Trop de tentatives. Veuillez réessayer plus tard.");
+    }
+    
+    // Enregistrement de la tentative
+    $stmt = $db->prepare("INSERT INTO rate_limits (action, ip_address) VALUES (?, ?)");
+    $stmt->bind_param("ss", $action, $ip_address);
+    $stmt->execute();
+}
+
 function setJsonHeaders() {
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(200); // Force 200 OK par défaut
