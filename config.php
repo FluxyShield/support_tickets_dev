@@ -90,7 +90,29 @@ class Database {
     private function __construct() {
         try {
             mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Active les exceptions MySQL
-            $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            
+            $this->connection = mysqli_init();
+            if (!$this->connection) {
+                throw new Exception("mysqli_init failed");
+            }
+
+            // Configuration SSL
+            $key = __DIR__ . '/certs/client-key.pem';
+            $cert = __DIR__ . '/certs/client-cert.pem';
+            $ca = __DIR__ . '/certs/ca-cert.pem';
+
+            // Vérification de l'existence des fichiers de certificats
+            if (!file_exists($key) || !file_exists($cert) || !file_exists($ca)) {
+                 throw new Exception("Certificats SSL manquants dans le dossier certs/");
+            }
+
+            $this->connection->ssl_set($key, $cert, $ca, null, null);
+            
+            // Connexion avec SSL
+            if (!$this->connection->real_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME, 3306, null, MYSQLI_CLIENT_SSL)) {
+                throw new Exception("Erreur de connexion SSL (" . $this->connection->connect_errno . "): " . $this->connection->connect_error);
+            }
+
             $this->connection->set_charset(DB_CHARSET);
         } catch (Exception $e) {
             // On ne plante pas ici, on laisse l'appelant gérer l'exception pour renvoyer du JSON
@@ -268,4 +290,3 @@ function setJsonHeaders() {
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(200); // Force 200 OK par défaut
 }
-?>
