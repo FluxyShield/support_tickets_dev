@@ -97,13 +97,13 @@ class Database {
             }
 
             // Configuration SSL
-            $key = __DIR__ . '/certs/client-key.pem';
-            $cert = __DIR__ . '/certs/client-cert.pem';
-            $ca = __DIR__ . '/certs/ca-cert.pem';
+            $key = __DIR__ . '/etc/mysql/ssl/client-key.pem';
+            $cert = __DIR__ . '/etc/mysql/ssl/client-cert.pem';
+            $ca = __DIR__ . '/etc/mysql/ssl/ca-cert.pem';
 
             // Vérification de l'existence des fichiers de certificats
             if (!file_exists($key) || !file_exists($cert) || !file_exists($ca)) {
-                 throw new Exception("Certificats SSL manquants dans le dossier certs/");
+                 throw new Exception("Certificats SSL manquants dans le dossier etc/mysql/ssl/");
             }
 
             $this->connection->ssl_set($key, $cert, $ca, null, null);
