@@ -28,5 +28,6 @@ Options -Indexes
     # 4. Bloquer l'accès au dossier 'vendor' (très important)
     # ------------------------------------------------
     RewriteRule ^vendor/ - [F,L]
+    RewriteRule ^storage/ - [F,L]
 
 </IfModule>
