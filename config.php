@@ -4,6 +4,15 @@
  * @brief Fichier de configuration principal.
  */
 
+// ACTIVATION DU DEBUGGING (A SUPPRIMER EN PROD)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
+    die("Erreur critique : Le dossier 'vendor' est manquant. Veuillez exécuter 'composer install'.");
+}
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
