@@ -15,7 +15,7 @@ let currentPeriod = '30';
 async function loadAdvancedStats(period = '30') {
     currentPeriod = period;
     const container = document.getElementById('statsTab');
-    
+
     // Afficher le loader
     container.innerHTML = `
         <div style="text-align:center; padding:60px;">
@@ -23,11 +23,11 @@ async function loadAdvancedStats(period = '30') {
             <h3 style="color:var(--gray-600);">Chargement des statistiques...</h3>
         </div>
     `;
-    
+
     try {
         const res = await apiFetch(`api.php?action=get_advanced_stats&period=${period}`);
         const data = await res.json();
-        
+
         if (data.success) {
             statsData = data;
             renderDashboard(data);
@@ -45,11 +45,11 @@ async function loadAdvancedStats(period = '30') {
  */
 function renderDashboard(data) {
     const container = document.getElementById('statsTab');
-    
+
     container.innerHTML = `
         <!-- Header avec filtres -->
         <div class="stats-header">
-            <h2>📊 Tableau de Bord</h2>
+            <h2>📊 Tableau de Bord Avancé</h2>
             <div class="stats-filters">
                 <button class="period-btn ${currentPeriod === '7' ? 'active' : ''}" onclick="loadAdvancedStats('7')">7 jours</button>
                 <button class="period-btn ${currentPeriod === '30' ? 'active' : ''}" onclick="loadAdvancedStats('30')">30 jours</button>
@@ -75,11 +75,34 @@ function renderDashboard(data) {
         <div class="charts-grid">
             <div class="chart-card">
                 <div class="chart-header">
-                    <h3>📈 Évolution des Tickets</h3>
+                    <h3>📈 Évolution & Prédictions</h3>
                 </div>
                 <div id="timelineChart"></div>
             </div>
 
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>🧠 Analyse Sémantique (Mots-clés)</h3>
+                </div>
+                <div id="keywordChart" class="keyword-cloud"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>⚖️ Charge & Risque Agents</h3>
+                </div>
+                <div id="agentLoadChart"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>📉 Corrélation Satisfaction / Temps</h3>
+                </div>
+                <div id="correlationChart"></div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
             <div class="chart-card">
                 <div class="chart-header">
                     <h3>🎨 Répartition par Catégorie</h3>
@@ -92,13 +115,6 @@ function renderDashboard(data) {
                     <h3>🎯 Répartition par Priorité</h3>
                 </div>
                 <div id="priorityChart"></div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3>⭐ Satisfaction Client</h3>
-                </div>
-                <div id="satisfactionChart"></div>
             </div>
         </div>
 
@@ -133,12 +149,15 @@ function renderDashboard(data) {
             </div>
         </div>
     `;
-    
+
     // Rendre tous les graphiques
-    renderTimelineChart(data.timeline);
+    renderForecastChart(data.timeline, data.forecast);
+    renderKeywordAnalysis(data.keywords);
+    renderAgentLoad(data.agent_load);
+    renderCorrelationChart(data.correlation);
+
     renderCategoryChart(data.categories);
     renderPriorityChart(data.priorities);
-    renderSatisfactionChart(data.satisfaction);
     renderAdminsPerformance(data.admins_performance);
     renderPeakHoursChart(data.peak_hours);
     renderTopCategories(data.top_categories);
@@ -156,7 +175,7 @@ function renderKPICard(label, value, icon, gradient, variation = null) {
         const color = isPositive ? '#10b981' : '#ef4444';
         variationHTML = `<div class="kpi-variation" style="color:${color}">${arrow} ${Math.abs(variation)}%</div>`;
     }
-    
+
     return `
         <div class="kpi-card" style="background:${gradient}">
             <div class="kpi-icon">${icon}</div>
@@ -170,18 +189,28 @@ function renderKPICard(label, value, icon, gradient, variation = null) {
 }
 
 /**
- * 📈 Graphique Timeline
+ * 📈 Graphique Timeline + Forecast
  */
-function renderTimelineChart(data) {
+function renderForecastChart(timelineData, forecastData) {
+    const historicalData = timelineData.map(d => ({
+        x: new Date(d.date).getTime(),
+        y: d.total
+    }));
+
+    const predictionData = forecastData.map(d => ({
+        x: new Date(d.date).getTime(),
+        y: d.count
+    }));
+
     const options = {
         series: [
             {
-                name: 'Créés',
-                data: data.map(d => d.total)
+                name: 'Historique',
+                data: historicalData
             },
             {
-                name: 'Fermés',
-                data: data.map(d => d.closed)
+                name: 'Prédiction',
+                data: predictionData
             }
         ],
         chart: {
@@ -193,20 +222,10 @@ function renderTimelineChart(data) {
         dataLabels: { enabled: false },
         stroke: {
             curve: 'smooth',
-            width: 3
+            width: [3, 3],
+            dashArray: [0, 5] // Pointillés pour la prédiction
         },
-        colors: ['#EF8000', '#10b981'],
-        xaxis: {
-            categories: data.map(d => new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })),
-            labels: {
-                style: { colors: '#6b7280' }
-            }
-        },
-        yaxis: {
-            labels: {
-                style: { colors: '#6b7280' }
-            }
-        },
+        colors: ['#EF8000', '#9ca3af'],
         fill: {
             type: 'gradient',
             gradient: {
@@ -215,17 +234,110 @@ function renderTimelineChart(data) {
                 opacityTo: 0.2
             }
         },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right'
+        xaxis: {
+            type: 'datetime',
+            labels: {
+                format: 'dd MMM',
+                style: { colors: '#6b7280' }
+            }
         },
         tooltip: {
-            shared: true,
-            intersect: false
-        }
+            x: { format: 'dd MMM yyyy' }
+        },
+        legend: { position: 'top' }
     };
-    
+
     const chart = new ApexCharts(document.querySelector("#timelineChart"), options);
+    chart.render();
+}
+
+/**
+ * 🧠 Analyse Sémantique
+ */
+function renderKeywordAnalysis(data) {
+    const container = document.getElementById('keywordChart');
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="text-align:center;width:100%;color:var(--gray-600);">Pas assez de données</p>';
+        return;
+    }
+
+    // Normaliser les tailles
+    const maxCount = Math.max(...data.map(d => d.count));
+
+    container.innerHTML = data.map(item => {
+        const sizeClass = item.count > maxCount * 0.7 ? 'high' : (item.count > maxCount * 0.4 ? 'medium' : 'low');
+        return `<span class="keyword-tag ${sizeClass}" title="${item.count} occurrences">${item.word}</span>`;
+    }).join('');
+}
+
+/**
+ * ⚖️ Charge Agent
+ */
+function renderAgentLoad(data) {
+    const container = document.getElementById('agentLoadChart');
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gray-600);">Aucun agent actif</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(agent => {
+        // Calcul du risque/charge (0-100 arbitraire pour la couleur)
+        // Disons que 10 points de charge = 100% (très chargé)
+        const loadPercent = Math.min(100, agent.load_score * 10);
+        const color = loadPercent > 70 ? '#ef4444' : (loadPercent > 40 ? '#f59e0b' : '#10b981');
+
+        return `
+            <div class="agent-load-card">
+                <div class="agent-load-gauge" style="color:${color};border:4px solid ${color}">
+                    ${agent.load_score}
+                </div>
+                <div class="agent-load-info">
+                    <div class="agent-load-name">${agent.name}</div>
+                    <div class="agent-load-details">
+                        ${agent.tickets_count} tickets actifs<br>
+                        <span style="color:#ef4444">${agent.high_priority} urgents</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * 📉 Corrélation Satisfaction
+ */
+function renderCorrelationChart(data) {
+    const options = {
+        series: [{
+            name: "Tickets",
+            data: data.map(d => [d.x, d.y])
+        }],
+        chart: {
+            height: 350,
+            type: 'scatter',
+            zoom: { enabled: true, type: 'xy' },
+            toolbar: { show: false }
+        },
+        xaxis: {
+            tickAmount: 10,
+            labels: {
+                formatter: function (val) { return parseFloat(val).toFixed(1) }
+            },
+            title: { text: 'Temps de résolution (heures)' }
+        },
+        yaxis: {
+            tickAmount: 5,
+            min: 1,
+            max: 5,
+            title: { text: 'Note (1-5)' }
+        },
+        colors: ['#EF8000'],
+        markers: { size: 6 }
+    };
+
+    const chart = new ApexCharts(document.querySelector("#correlationChart"), options);
     chart.render();
 }
 
@@ -269,7 +381,7 @@ function renderCategoryChart(data) {
             }
         }]
     };
-    
+
     const chart = new ApexCharts(document.querySelector("#categoryChart"), options);
     chart.render();
 }
@@ -296,7 +408,7 @@ function renderPriorityChart(data) {
             opacity: 0.8
         }
     };
-    
+
     const chart = new ApexCharts(document.querySelector("#priorityChart"), options);
     chart.render();
 }
@@ -305,40 +417,9 @@ function renderPriorityChart(data) {
  * ⭐ Graphique Satisfaction
  */
 function renderSatisfactionChart(data) {
-    const ratings = [5, 4, 3, 2, 1];
-    const counts = ratings.map(r => data[r] || 0);
-    
-    const options = {
-        series: [{
-            name: 'Nombre d\'avis',
-            data: counts
-        }],
-        chart: {
-            type: 'bar',
-            height: 350,
-            horizontal: true
-        },
-        plotOptions: {
-            bar: {
-                borderRadius: 8,
-                distributed: true,
-                horizontal: true
-            }
-        },
-        dataLabels: {
-            enabled: true
-        },
-        colors: ['#10b981', '#34d399', '#fbbf24', '#fb923c', '#ef4444'],
-        xaxis: {
-            categories: ratings.map(r => '★'.repeat(r) + '☆'.repeat(5-r))
-        },
-        legend: {
-            show: false
-        }
-    };
-    
-    const chart = new ApexCharts(document.querySelector("#satisfactionChart"), options);
-    chart.render();
+    // Note: Ce graphique a été remplacé par la corrélation dans la vue principale, 
+    // mais on peut le garder si besoin ou le supprimer.
+    // Pour l'instant, je ne l'appelle plus dans renderDashboard pour gagner de la place.
 }
 
 /**
@@ -346,16 +427,16 @@ function renderSatisfactionChart(data) {
  */
 function renderAdminsPerformance(data) {
     const container = document.getElementById('adminsPerformance');
-    
+
     if (!data || data.length === 0) {
         container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--gray-600);">Aucune donnée disponible</p>';
         return;
     }
-    
+
     container.innerHTML = data.map((admin, index) => {
         const resolvedRate = admin.total_assigned > 0 ? Math.round((admin.resolved / admin.total_assigned) * 100) : 0;
         const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-        
+
         return `
             <div class="admin-performance-card">
                 <div class="admin-rank">${medal || '#' + (index + 1)}</div>
@@ -397,7 +478,7 @@ function renderPeakHoursChart(data) {
         },
         colors: ['#EF8000'],
         xaxis: {
-            categories: Array.from({length: 24}, (_, i) => `${i}h`),
+            categories: Array.from({ length: 24 }, (_, i) => `${i}h`),
             labels: {
                 style: { fontSize: '11px' }
             }
@@ -418,7 +499,7 @@ function renderPeakHoursChart(data) {
             }
         }
     };
-    
+
     const chart = new ApexCharts(document.querySelector("#peakHoursChart"), options);
     chart.render();
 }
@@ -428,17 +509,17 @@ function renderPeakHoursChart(data) {
  */
 function renderTopCategories(data) {
     const container = document.getElementById('topCategories');
-    
+
     if (!data || data.length === 0) {
         container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--gray-600);">Aucune donnée</p>';
         return;
     }
-    
+
     const maxCount = Math.max(...data.map(d => d.count));
-    
+
     container.innerHTML = data.map((item, index) => {
         const percentage = Math.round((item.count / maxCount) * 100);
-        
+
         return `
             <div class="top-item">
                 <div class="top-rank">#${index + 1}</div>
@@ -459,15 +540,15 @@ function renderTopCategories(data) {
  */
 function renderUnassignedTickets(data) {
     const container = document.getElementById('unassignedTickets');
-    
+
     if (!data || data.length === 0) {
         container.innerHTML = '<div class="empty-alert">✅ Aucun ticket en attente !</div>';
         return;
     }
-    
+
     container.innerHTML = data.map(ticket => {
         const priorityColor = ticket.priority === 'Haute' ? '#ef4444' : ticket.priority === 'Moyenne' ? '#EF8000' : '#9ca3af';
-        
+
         return `
             <div class="unassigned-item" onclick="viewTicket(${ticket.id})">
                 <div class="unassigned-id">#${ticket.id}</div>

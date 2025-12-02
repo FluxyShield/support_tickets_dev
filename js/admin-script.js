@@ -30,8 +30,8 @@ let adminsList = [];
 let cannedResponses = [];
 
 let currentPage = 1;
-let itemsPerPage = 10; 
-let currentPaginationData = {}; 
+let itemsPerPage = 10;
+let currentPaginationData = {};
 
 // ❌ ANCIEN CODE SUPPRIMÉ : On ne vérifie plus le localStorage ici.
 // La sécurité est gérée par le serveur et checkAdminSession().
@@ -51,11 +51,11 @@ async function checkAdminSession() {
         // get_app_settings est parfait car il renvoie les infos sans être lourd
         const response = await apiFetch('api.php?action=get_app_settings');
         const data = await response.json();
-        
+
         if (data.success) {
             // La session est valide, on peut charger l'interface
             loadInitialData();
-            
+
             // Si l'API renvoyait le nom de l'admin, on pourrait l'afficher ici
             // Sinon, le serveur gère l'affichage via PHP ou une autre requête
             // document.getElementById('adminName').textContent = ...
@@ -105,9 +105,9 @@ async function apiFetch(url, options = {}) {
                 alert('Votre session a expiré. Veuillez vous reconnecter.');
                 window.location.href = 'login.php';
                 // On bloque la suite
-                return new Promise(() => {});
+                return new Promise(() => { });
             }
-            
+
             // Pour garder la compatibilité avec votre code existant qui fait "await res.json()"
             // On renvoie un objet qui a une méthode .json() qui retourne déjà la data
             return {
@@ -120,7 +120,7 @@ async function apiFetch(url, options = {}) {
 
         // Si ce n'est pas du JSON (ex: téléchargement fichier), on renvoie la réponse brute
         return response;
-        
+
     } catch (error) {
         console.error('Erreur apiFetch:', error);
         throw error;
@@ -134,10 +134,10 @@ async function apiFetch(url, options = {}) {
 // Point d'entrée du script
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
-    
+
     // Gestionnaire déconnexion
-    const logoutBtn = document.getElementById('logoutButton'); 
-    if(logoutBtn) {
+    const logoutBtn = document.getElementById('logoutButton');
+    if (logoutBtn) {
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await apiFetch('api.php?action=logout', { method: 'POST' });
@@ -149,10 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Navigation par onglets
 function switchTab(tab) {
     currentTab = tab;
-    
+
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
+
     if (tab === 'tickets') {
         document.querySelectorAll('.admin-tab')[0].classList.add('active');
         document.getElementById('ticketsTab').classList.add('active');
@@ -160,9 +160,9 @@ function switchTab(tab) {
         document.querySelectorAll('.admin-tab')[1].classList.add('active');
         document.getElementById('statsTab').classList.add('active');
         // Si vous avez une fonction loadAdvancedStats, elle serait appelée ici
-        if(typeof loadAdvancedStats === 'function') loadAdvancedStats('30'); 
+        if (typeof loadAdvancedStats === 'function') loadAdvancedStats('30');
 
-    } else if (tab === 'settings') { 
+    } else if (tab === 'settings') {
         document.querySelectorAll('.admin-tab')[2].classList.add('active');
         document.getElementById('settingsTab').classList.add('active');
         renderSettingsTab('admins');
@@ -172,7 +172,7 @@ function switchTab(tab) {
 function switchSettingsTab(subTab) {
     document.querySelectorAll('.settings-sub-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.settings-sub-content').forEach(c => c.style.display = 'none');
-    
+
     if (subTab === 'admins') {
         document.getElementById('settingsAdminsTab').classList.add('active');
         document.getElementById('settingsAdminsContent').style.display = 'block';
@@ -188,10 +188,10 @@ function switchSettingsTab(subTab) {
 }
 
 async function loadInitialData() {
-    await loadAdmins(); 
-    await loadCannedResponses(); 
-    await loadKOPStats(); 
-    await loadTickets(); 
+    await loadAdmins();
+    await loadCannedResponses();
+    await loadKOPStats();
+    await loadTickets();
 }
 
 async function loadKOPStats() {
@@ -201,14 +201,14 @@ async function loadKOPStats() {
         if (data.success) {
             document.getElementById('totalTickets').textContent = data.stats.total;
             document.getElementById('openTickets').textContent = data.stats.Ouvert;
-            document.getElementById('inProgressTickets').textContent = data.stats['En cours']; 
+            document.getElementById('inProgressTickets').textContent = data.stats['En cours'];
             document.getElementById('closedTickets').textContent = data.stats.Fermé;
         }
     } catch (error) {
         console.error('Erreur chargement KOP Stats:', error);
         ['totalTickets', 'openTickets', 'inProgressTickets', 'closedTickets'].forEach(id => {
             const el = document.getElementById(id);
-            if(el) el.textContent = '...';
+            if (el) el.textContent = '...';
         });
     }
 }
@@ -250,13 +250,13 @@ let abortController = null;
 
 // Cache simple
 const ticketsCache = new Map();
-const CACHE_DURATION = 30000; 
+const CACHE_DURATION = 30000;
 
 function getCacheKey() {
     const statusFilter = document.getElementById('filterStatus').value;
     const priorityFilter = document.getElementById('filterPriority').value;
     const searchTerm = document.getElementById('adminSearchInput').value;
-    const filterMyTickets = window.filterMyTickets || false; 
+    const filterMyTickets = window.filterMyTickets || false;
     return `${currentPage}-${itemsPerPage}-${statusFilter}-${priorityFilter}-${searchTerm}-${filterMyTickets}`;
 }
 
@@ -284,7 +284,7 @@ function saveToCache(key, data) {
 
 function showLoadingIndicator() {
     const tbody = document.getElementById('ticketsTable');
-    if(tbody) {
+    if (tbody) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="9" style="text-align:center;padding:40px;">
@@ -301,15 +301,15 @@ async function loadTickets() {
         abortController.abort();
     }
     abortController = new AbortController();
-    
+
     const statusFilter = document.getElementById('filterStatus').value;
     const priorityFilter = document.getElementById('filterPriority').value;
     const searchTerm = document.getElementById('adminSearchInput').value;
     const filterMyTickets = window.filterMyTickets || false;
-    
+
     const cacheKey = getCacheKey();
     const cachedData = getFromCache(cacheKey);
-    
+
     if (cachedData) {
         console.log('📦 Chargement depuis le cache');
         tickets = cachedData.tickets;
@@ -319,12 +319,12 @@ async function loadTickets() {
         updateModalIfOpen();
         return;
     }
-    
+
     showLoadingIndicator();
 
     try {
         const url = `api.php?action=ticket_list&page=${currentPage}&limit=${itemsPerPage}&status=${statusFilter}&priority=${priorityFilter}&search=${encodeURIComponent(searchTerm)}&my_tickets=${filterMyTickets}&include_files=false`;
-        
+
         const startTime = performance.now();
         const res = await apiFetch(url, { signal: abortController.signal });
         const data = await res.json();
@@ -333,17 +333,17 @@ async function loadTickets() {
         if (data.success) {
             tickets = data.tickets;
             currentPaginationData = data.pagination;
-            
+
             saveToCache(cacheKey, {
                 tickets: data.tickets,
                 pagination: data.pagination
             });
-            
+
             console.log(`⚡ Tickets chargés en ${loadTime}ms (${data.pagination.totalItems} tickets)`);
             renderTickets();
             renderPaginationControls();
             updateModalIfOpen();
-            
+
         } else {
             console.error('Erreur:', data.message);
             showErrorMessage(data.message);
@@ -367,7 +367,7 @@ function updateModalIfOpen() {
         if (openTicketId) {
             const updatedTicket = tickets.find(t => t.id == openTicketId);
             if (updatedTicket) {
-                refreshModalContent(updatedTicket); 
+                refreshModalContent(updatedTicket);
             } else {
                 closeViewModal();
             }
@@ -380,7 +380,7 @@ function refreshModalContent(ticket) {
 
     const messagesContainer = document.getElementById('messagesContainer');
     if (messagesContainer) {
-        messagesContainer.innerHTML = ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' : 
+        messagesContainer.innerHTML = ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' :
             ticket.messages.map(m => `
                 <div class="message ${m.author_role === 'admin' ? 'message-admin' : (m.author_role === 'user' ? 'message-user' : 'message-system')}">
                     <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
@@ -395,16 +395,16 @@ function refreshModalContent(ticket) {
 }
 
 async function loadTicketFiles(ticketId) {
-    window.loadedTicketFiles = []; 
+    window.loadedTicketFiles = [];
     try {
         const res = await apiFetch(`api.php?action=ticket_list&limit=1&search=${ticketId}&include_files=true`);
         const data = await res.json();
-        
+
         if (data.success && data.tickets.length > 0) {
             const ticket = tickets.find(t => t.id === ticketId);
             if (ticket) {
                 ticket.files = data.tickets[0].files;
-                window.loadedTicketFiles = data.tickets[0].files; 
+                window.loadedTicketFiles = data.tickets[0].files;
             }
         }
     } catch (error) {
@@ -414,7 +414,7 @@ async function loadTicketFiles(ticketId) {
 
 function showErrorMessage(message) {
     const tbody = document.getElementById('ticketsTable');
-    if(tbody) {
+    if (tbody) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="9" style="text-align:center;padding:40px;">
@@ -461,15 +461,15 @@ function clearTicketsCache() {
 // Pagination et préchargement
 function preloadNextPage() {
     if (!currentPaginationData || currentPage >= currentPaginationData.totalPages) return;
-    
+
     const nextPage = currentPage + 1;
     const statusFilter = document.getElementById('filterStatus').value;
     const priorityFilter = document.getElementById('filterPriority').value;
     const searchTerm = document.getElementById('adminSearchInput').value;
     const filterMyTickets = window.filterMyTickets || false;
-    
+
     const url = `api.php?action=ticket_list&page=${nextPage}&limit=${itemsPerPage}&status=${statusFilter}&priority=${priorityFilter}&search=${encodeURIComponent(searchTerm)}&my_tickets=${filterMyTickets}&include_files=false`;
-    
+
     apiFetch(url).then(res => res.json()).then(data => {
         if (data.success) {
             const cacheKey = `${nextPage}-${itemsPerPage}-${statusFilter}-${priorityFilter}-${searchTerm}-${filterMyTickets}`;
@@ -479,7 +479,7 @@ function preloadNextPage() {
             });
             console.log('📥 Page suivante préchargée');
         }
-    }).catch(() => {});
+    }).catch(() => { });
 }
 
 function goToPage(page) {
@@ -499,7 +499,7 @@ function filterTickets() {
     loadTickets();
 }
 
-window.filterMyTickets = false; 
+window.filterMyTickets = false;
 
 function toggleMyTickets() {
     window.filterMyTickets = !window.filterMyTickets;
@@ -522,14 +522,14 @@ function renderTickets() {
         return;
     }
 
-    tbody.innerHTML = tickets.map(t => { 
+    tbody.innerHTML = tickets.map(t => {
         const unread = t.messages.filter(m => m.is_read === 0 && m.author_role === 'user').length;
-        
-        let assignedAdmin = null; 
-        if (t.assigned_to && adminsList) { 
+
+        let assignedAdmin = null;
+        if (t.assigned_to && adminsList) {
             assignedAdmin = adminsList.find(a => a.id === t.assigned_to);
         }
-        
+
         return `
             <tr class="${unread > 0 ? 'ticket-row-unread' : ''}" style="${unread > 0 ? 'background:rgba(239,128,0,0.05);' : ''}">
                 <td><strong>#${escapeHTML(t.id)}</strong></td>
@@ -539,10 +539,10 @@ function renderTickets() {
                 <td><span class="badge badge-${t.priority === 'Haute' ? 'high' : t.priority === 'Moyenne' ? 'medium' : 'low'}">${escapeHTML(t.priority)}</span></td>
                 
                 <td>
-                    ${assignedAdmin ? 
-                        `<span class="badge badge-assigned" style="background:var(--gray-200);color:var(--gray-700);">${escapeHTML(assignedAdmin.firstname)}</span>` : 
-                        `<span style="color:var(--gray-400);">Non assigné</span>`
-                    }
+                    ${assignedAdmin ?
+                `<span class="badge badge-assigned" style="background:var(--gray-200);color:var(--gray-700);">${escapeHTML(assignedAdmin.firstname)}</span>` :
+                `<span style="color:var(--gray-400);">Non assigné</span>`
+            }
                 </td>
                 
                 <td><span class="badge badge-${t.status === 'Ouvert' ? 'open' : t.status === 'En cours' ? 'in-progress' : 'closed'}">${escapeHTML(t.status)}</span></td>
@@ -562,7 +562,7 @@ function renderTickets() {
 function renderPaginationControls() {
     const { currentPage, totalPages } = currentPaginationData;
     const container = document.getElementById('paginationControls');
-    
+
     if (!totalPages || totalPages <= 1) {
         container.innerHTML = '';
         return;
@@ -570,8 +570,8 @@ function renderPaginationControls() {
 
     let html = '';
     html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Précédent</button>`;
-    
-    const maxPagesToShow = 5; 
+
+    const maxPagesToShow = 5;
     if (totalPages <= maxPagesToShow + 2) {
         for (let i = 1; i <= totalPages; i++) {
             html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
@@ -579,10 +579,10 @@ function renderPaginationControls() {
     } else {
         html += `<button class="pagination-btn ${1 === currentPage ? 'active' : ''}" onclick="goToPage(1)">1</button>`;
         if (currentPage > 3) html += `<span class="pagination-dots">...</span>`;
-        
+
         let startPage = Math.max(2, currentPage - 1);
         let endPage = Math.min(totalPages - 1, currentPage + 1);
-        
+
         if (currentPage <= 2) endPage = 3;
         if (currentPage >= totalPages - 1) startPage = totalPages - 2;
 
@@ -601,7 +601,6 @@ function renderPaginationControls() {
 // ==========================================
 // 7. MODAL ET DÉTAILS TICKET
 // ==========================================
-
 async function viewTicket(id) {
     let ticket = tickets.find(t => t.id === id);
 
@@ -617,19 +616,19 @@ async function viewTicket(id) {
 
     if (!ticket || !ticket.messages || !ticket.files) {
         await loadTicketFiles(id);
-        ticket = tickets.find(t => t.id === id); 
-        
+        ticket = tickets.find(t => t.id === id);
+
         if (!ticket || !ticket.messages) {
-             const res = await apiFetch(`api.php?action=ticket_list&limit=1&search=${id}&include_files=true`);
-             const data = await res.json();
-             if (data.success && data.tickets.length > 0) {
+            const res = await apiFetch(`api.php?action=ticket_list&limit=1&search=${id}&include_files=true`);
+            const data = await res.json();
+            if (data.success && data.tickets.length > 0) {
                 ticket = data.tickets[0];
                 const index = tickets.findIndex(t => t.id === id);
                 if (index !== -1) tickets[index] = ticket;
-             } else {
-                 alert(`Erreur : impossible de charger les détails du ticket ${id}.`);
-                 return;
-             }
+            } else {
+                alert(`Erreur : impossible de charger les détails du ticket ${id}.`);
+                return;
+            }
         }
     }
 
@@ -638,8 +637,8 @@ async function viewTicket(id) {
     }
 
     const details = document.getElementById('ticketDetails');
-    details.dataset.ticketId = id; 
-    
+    details.dataset.ticketId = id;
+
     details.innerHTML = `
         <div id="assignmentUI" class="assignment-section">
             ${renderAssignmentUI(ticket)}
@@ -662,11 +661,11 @@ async function viewTicket(id) {
             <h4 style="margin-bottom:15px;">📎 Fichiers joints (${ticket.files.length})</h4>
             <div class="file-gallery">
                 ${ticket.files.map((f, index) => {
-                    const isImage = f.type.includes('image');
-                    const isPDF = f.type.includes('pdf');
-                    const icon = isPDF ? '📄' : '🖼️';
-                    const badge = isPDF ? 'PDF' : isImage ? 'IMG' : 'FILE';
-                    return `
+        const isImage = f.type.includes('image');
+        const isPDF = f.type.includes('pdf');
+        const icon = isPDF ? '📄' : '🖼️';
+        const badge = isPDF ? 'PDF' : isImage ? 'IMG' : 'FILE';
+        return `
                     <div class="file-card">
                         <div class="file-card-preview" onclick="fileViewerSystem.openFile(${index})">
                             <span class="file-card-badge">${badge}</span>
@@ -694,20 +693,20 @@ async function viewTicket(id) {
                         </div>
                     </div>
                 `;
-                }).join('')}
+    }).join('')}
             </div>
         ` : ''}
 
         <h4 style="margin-bottom:15px;">Messages</h4>
         <div id="messagesContainer">
-            ${ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' : 
-                ticket.messages.map(m => `
+            ${ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' :
+            ticket.messages.map(m => `
                     <div class="message ${m.author_role === 'admin' ? 'message-admin' : (m.author_role === 'user' ? 'message-user' : 'message-system')}">
                         <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
                         <p style="margin-top:5px;">${escapeHTML(m.text)}</p>
                     </div>
                 `).join('')
-            }
+        }
         </div>
 
         <form onsubmit="sendMessage(event, ${ticket.id})" style="margin-top:20px;">
@@ -734,14 +733,14 @@ async function viewTicket(id) {
     `;
 
     document.getElementById('viewTicketModal').classList.add('active');
-    
+
     const messagesContainer = document.getElementById('messagesContainer');
-    if(messagesContainer) {
+    if (messagesContainer) {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
     if (typeof DragDropUpload !== 'undefined') {
-         adminDragDrop = new DragDropUpload({
+        adminDragDrop = new DragDropUpload({
             dropZoneId: 'adminDropZone',
             fileInputId: 'adminFile',
             previewContainerId: 'adminFilePreview',
@@ -758,7 +757,7 @@ async function viewTicket(id) {
 
 function renderSettingsTab(defaultTab = 'admins') {
     const container = document.getElementById('settingsTab');
-    
+
     container.innerHTML = `
         <h2 style="color:var(--gray-900);margin-bottom:20px;">⚙️ Paramètres</h2>
         <div class="settings-layout">
@@ -785,7 +784,7 @@ function renderSettingsTab(defaultTab = 'admins') {
             </div>
         </div>
     `;
-    
+
     switchSettingsTab(defaultTab, true);
 }
 
@@ -824,22 +823,22 @@ function renderAdminList() {
     if (adminsList.length === 0) {
         return '<p style="color:var(--gray-600);padding:20px 0;">Aucun admin trouvé.</p>';
     }
-    
-    // Note: adminId (global) est maintenant potentiellement manquant si on ne l'a pas fetché
-    // Idéalement il faudrait le récupérer via api.php?action=get_app_settings ou get_current_user
+
     return adminsList.map(admin => `
         <div class="canned-item">
             <div class="canned-item-info">
                 <strong>${escapeHTML(admin.fullname)}</strong>
             </div>
-             <button class="btn btn-secondary btn-small" disabled>Admin</button>
+            <button class="btn btn-danger btn-small" onclick="deleteAdmin(${admin.id}, '${escapeHTML(admin.fullname)}')" title="Supprimer cet administrateur">
+                🗑️ Supprimer
+            </button>
         </div>
     `).join('');
 }
 
 async function inviteAdmin(e) {
     e.preventDefault();
-    
+
     const errorDiv = document.getElementById('adminInviteError');
     const successDiv = document.getElementById('adminInviteSuccess');
     errorDiv.style.display = 'none';
@@ -860,11 +859,11 @@ async function inviteAdmin(e) {
             body: { email }
         });
         const data = await res.json();
-        
+
         if (data.success) {
             successDiv.textContent = '✅ ' + data.message;
             successDiv.style.display = 'block';
-            emailInput.value = ''; 
+            emailInput.value = '';
         } else {
             errorDiv.textContent = '❌ ' + data.message;
             errorDiv.style.display = 'block';
@@ -879,9 +878,31 @@ async function inviteAdmin(e) {
     }
 }
 
-// ==========================================
-// 9. CANNED RESPONSES & SETTINGS
-// ==========================================
+async function deleteAdmin(adminId, adminName) {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'administrateur "${adminName}" ?\n\nCette action est irréversible.`)) {
+        return;
+    }
+
+    try {
+        const res = await apiFetch('api.php?action=delete_admin', {
+            method: 'POST',
+            body: { admin_id: adminId }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showSuccessAnimation('Administrateur supprimé');
+            loadAdmins().then(() => {
+                renderSettingsTab('admins');
+            });
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur suppression admin:', error);
+        alert('❌ Erreur de connexion au serveur');
+    }
+}
 
 function renderCannedSubTab() {
     return `
@@ -915,7 +936,7 @@ function renderCannedList() {
     if (cannedResponses.length === 0) {
         return '<p style="color:var(--gray-600);padding:20px 0;">Aucun modèle enregistré.</p>';
     }
-    
+
     return cannedResponses.map(r => `
         <div class="canned-item">
             <div class="canned-item-info">
@@ -931,18 +952,20 @@ async function createCannedResponse(e) {
     e.preventDefault();
     const title = document.getElementById('cannedTitle').value;
     const content = document.getElementById('cannedContent').value;
-    
+
     try {
-        const res = await apiFetch('api.php?action=canned_create', {
+        const res = await apiFetch('api.php?action=canned_response_create', {
             method: 'POST',
             body: { title, content }
         });
         const data = await res.json();
-        
         if (data.success) {
-            showSuccessAnimation('Modèle créé !');
-            await loadCannedResponses(); 
-            renderSettingsTab('canned'); 
+            showSuccessAnimation('Modèle créé');
+            document.getElementById('cannedTitle').value = '';
+            document.getElementById('cannedContent').value = '';
+            loadCannedResponses().then(() => {
+                document.getElementById('cannedListContainer').innerHTML = renderCannedList();
+            });
         } else {
             alert('❌ ' + data.message);
         }
@@ -952,19 +975,18 @@ async function createCannedResponse(e) {
 }
 
 async function deleteCannedResponse(id) {
-    if (!confirm('Voulez-vous vraiment supprimer ce modèle ?')) return;
-    
+    if (!confirm('Supprimer ce modèle ?')) return;
+
     try {
-        const res = await apiFetch('api.php?action=canned_delete', {
+        const res = await apiFetch('api.php?action=canned_response_delete', {
             method: 'POST',
             body: { id }
         });
         const data = await res.json();
-        
         if (data.success) {
-            showSuccessAnimation('Modèle supprimé !');
-            await loadCannedResponses(); 
-            renderSettingsTab('canned'); 
+            loadCannedResponses().then(() => {
+                document.getElementById('cannedListContainer').innerHTML = renderCannedList();
+            });
         } else {
             alert('❌ ' + data.message);
         }
@@ -976,15 +998,13 @@ async function deleteCannedResponse(id) {
 function applyCannedResponse() {
     const select = document.getElementById('cannedResponseSelect');
     const responseId = select.value;
-    if (!responseId) return; 
+    if (!responseId) return;
 
     const response = cannedResponses.find(r => r.id == responseId);
     if (response) {
         const messageBox = document.getElementById('adminMessage');
         messageBox.value = response.content;
-        messageBox.focus(); 
     }
-    select.value = ""; 
 }
 
 async function renderGeneralSettings() {
@@ -1036,7 +1056,7 @@ async function saveGeneralSettings(e) {
     const formData = new FormData();
     formData.append('app_name', document.getElementById('appName').value);
     formData.append('app_primary_color', document.getElementById('appPrimaryColor').value);
-    
+
     const logoInput = document.getElementById('appLogo');
     if (logoInput.files.length > 0) {
         formData.append('app_logo', logoInput.files[0]);
@@ -1049,7 +1069,7 @@ async function saveGeneralSettings(e) {
         if (data.success) {
             messagesDiv.innerHTML = `<div class="success-message" style="margin-bottom:15px;">${data.message}</div>`;
             showSuccessAnimation('Paramètres sauvegardés !');
-            setTimeout(() => window.location.reload(), 1500); 
+            setTimeout(() => window.location.reload(), 1500);
         } else {
             messagesDiv.innerHTML = `<div class="error-message" style="margin-bottom:15px;">${data.message}</div>`;
         }
@@ -1074,10 +1094,10 @@ function renderAssignmentUI(ticket) {
             <select id="adminAssignSelect" class="form-control" style="width:100%;padding:10px;border-radius:8px;border:2px solid var(--gray-200);">
                 <option value="0">-- Non assigné --</option>
                 ${adminsList.map(admin => `
-                    <option value="${admin.id}" ${assignedAdmin && assignedAdmin.id === admin.id ? 'selected' : ''}>
-                        ${admin.fullname}
-                    </option>
-                `).join('')}
+                <option value="${admin.id}" ${assignedAdmin && assignedAdmin.id === admin.id ? 'selected' : ''}>
+                    ${admin.fullname}
+                </option>
+            `).join('')}
             </select>
             <div class="assignment-actions">
                 <button class="btn btn-success" onclick="assignTicket(${ticket.id})">Assigner</button>
@@ -1100,17 +1120,17 @@ async function assignTicket(ticketId) {
             body: {
                 ticket_id: ticketId,
                 admin_id: parseInt(adminId),
-                note: `Assigné par un administrateur` 
+                note: `Assigné par un administrateur`
             }
         });
         const data = await res.json();
         if (data.success) {
             showSuccessAnimation('Ticket assigné !');
-            clearTicketsCache(); 
-            await loadTickets(); 
+            clearTicketsCache();
+            await loadTickets();
             const ticket = tickets.find(t => t.id === ticketId);
-            if(ticket && document.getElementById('assignmentUI')) { 
-                 document.getElementById('assignmentUI').innerHTML = renderAssignmentUI(ticket);
+            if (ticket && document.getElementById('assignmentUI')) {
+                document.getElementById('assignmentUI').innerHTML = renderAssignmentUI(ticket);
             }
         } else {
             alert('❌ ' + data.message);
@@ -1121,19 +1141,25 @@ async function assignTicket(ticketId) {
 }
 
 async function unassignTicket(ticketId) {
+    if (!confirm('Voulez-vous vraiment désassigner ce ticket ?')) return;
+
     try {
-        const res = await apiFetch('api.php?action=unassign_ticket', {
+        const res = await apiFetch('api.php?action=assign_ticket', {
             method: 'POST',
-            body: { ticket_id: ticketId }
+            body: {
+                ticket_id: ticketId,
+                admin_id: null,
+                note: `Désassigné par un administrateur`
+            }
         });
         const data = await res.json();
         if (data.success) {
-            showSuccessAnimation('Ticket désassigné !');
-            clearTicketsCache(); 
-            await loadTickets(); 
+            showSuccessAnimation('Ticket désassigné');
+            clearTicketsCache();
+            await loadTickets();
             const ticket = tickets.find(t => t.id === ticketId);
-             if(ticket && document.getElementById('assignmentUI')) { 
-                 document.getElementById('assignmentUI').innerHTML = renderAssignmentUI(ticket);
+            if (ticket && document.getElementById('assignmentUI')) {
+                document.getElementById('assignmentUI').innerHTML = renderAssignmentUI(ticket);
             }
         } else {
             alert('❌ ' + data.message);
@@ -1146,79 +1172,136 @@ async function unassignTicket(ticketId) {
 async function sendMessage(e, ticketId) {
     e.preventDefault();
     const messageInput = document.getElementById('adminMessage');
-    const message = messageInput.value;
-    
-    messageInput.value = '';
-    if (adminDragDrop) adminDragDrop.clear();
-    
+    const message = messageInput.value.trim();
+    const fileInput = document.getElementById('adminFile');
+
+    if (!message && fileInput.files.length === 0) return;
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Envoi...';
+
+    const formData = new FormData();
+    formData.append('ticket_id', ticketId);
+    formData.append('message', message);
+
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('files[]', fileInput.files[i]);
+    }
+
     try {
-        const res = await apiFetch('api.php?action=message_create', {
+        const res = await apiFetch('api.php?action=ticket_reply', {
             method: 'POST',
-            body: {
-                ticket_id: ticketId,
-                message: message
-            }
+            body: formData
         });
         const data = await res.json();
+
         if (data.success) {
-            if (adminDragDrop && adminDragDrop.files.length > 0) {
-                await adminDragDrop.uploadFiles(ticketId); 
-                adminDragDrop.clear();
-            }
-            clearTicketsCache(); 
-            await loadTickets(); 
-            await loadKOPStats(); 
+            messageInput.value = '';
+            fileInput.value = '';
+            document.getElementById('adminFilePreview').innerHTML = '';
+            showSuccessAnimation('Message envoyé');
+
+            // Recharger le ticket pour voir le nouveau message
+            clearTicketsCache();
+            await loadTickets();
+
+            // Mettre à jour le modal si ouvert
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (ticket) refreshModalContent(ticket);
+
         } else {
             alert('❌ ' + data.message);
-            messageInput.value = message;
         }
     } catch (error) {
-        console.error('Erreur:', error);
-        alert('❌ Erreur lors de l\'envoi du message');
-        messageInput.value = message;
+        console.error('Erreur envoi message:', error);
+        alert('❌ Erreur lors de l\'envoi');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer';
     }
 }
 
 async function deleteFile(fileId, ticketId) {
     if (!confirm('Supprimer ce fichier ?')) return;
-    const res = await apiFetch('api.php?action=ticket_delete_file', {
-        method: 'POST',
-        body: { file_id: fileId, ticket_id: ticketId }
-    });
-    const data = await res.json();
-    if (data.success) {
-        clearTicketsCache(); 
-        await loadTickets();
-    } else {
-        alert('❌ ' + data.message);
+
+    try {
+        const res = await apiFetch('api.php?action=ticket_delete_file', {
+            method: 'POST',
+            body: { file_id: fileId, ticket_id: ticketId }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showSuccessAnimation('Fichier supprimé');
+            await loadTicketFiles(ticketId);
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (ticket) refreshModalContent(ticket);
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur suppression fichier:', error);
     }
 }
 
-async function changeStatus(id, status) {
-    const res = await apiFetch('api.php?action=ticket_update', {
-        method: 'POST',
-        body: { id, status }
-    });
-    const data = await res.json();
-    if (data.success) {
-        clearTicketsCache(); 
-        await loadTickets(); 
-        await loadKOPStats(); 
-        document.dispatchEvent(new CustomEvent('ticketsUpdated')); 
+async function changeStatus(id, newStatus) {
+    try {
+        const res = await apiFetch('api.php?action=ticket_update_status', {
+            method: 'POST',
+            body: { ticket_id: id, status: newStatus }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showSuccessAnimation(`Statut changé en "${newStatus}"`);
+            // Mise à jour locale optimiste
+            const ticket = tickets.find(t => t.id === id);
+            if (ticket) {
+                ticket.status = newStatus;
+                renderTickets();
+                // Si le modal est ouvert, le mettre à jour
+                const modal = document.getElementById('viewTicketModal');
+                if (modal && modal.classList.contains('active') && document.getElementById('ticketDetails').dataset.ticketId == id) {
+                    refreshModalContent(ticket);
+                }
+            }
+            // Rafraîchir les stats KOP
+            loadKOPStats();
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur changement statut:', error);
     }
 }
 
 async function deleteTicket(id) {
-    if (!confirm('Supprimer ce ticket ?')) return;
-    const res = await apiFetch('api.php?action=ticket_delete', {
-        method: 'POST',
-        body: { id }
-    });
-    const data = await res.json();
-    if (data.success) {
-        clearTicketsCache(); 
-        loadTickets(); 
-        loadKOPStats(); 
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible.')) return;
+
+    try {
+        const res = await apiFetch('api.php?action=ticket_delete', {
+            method: 'POST',
+            body: { ticket_id: id }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showSuccessAnimation('Ticket supprimé');
+            // Suppression locale
+            tickets = tickets.filter(t => t.id !== id);
+            renderTickets();
+            loadKOPStats();
+
+            // Si le modal était ouvert sur ce ticket, le fermer
+            const modal = document.getElementById('viewTicketModal');
+            if (modal && modal.classList.contains('active') && document.getElementById('ticketDetails').dataset.ticketId == id) {
+                closeViewModal();
+            }
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur suppression ticket:', error);
     }
 }
 
@@ -1227,194 +1310,179 @@ function confirmDeleteAll() {
 }
 
 async function deleteAllTickets() {
-    const res = await apiFetch('api.php?action=ticket_delete_all', {
-        method: 'POST'
-    });
-    const data = await res.json();
-    if (data.success) {
-        closeDeleteAllModal();
-        currentPage = 1; 
-        clearTicketsCache(); 
-        loadTickets();
-        loadKOPStats(); 
-        alert(`✅ ${data.deleted_count} tickets supprimés`);
+    const password = document.getElementById('deletePassword').value;
+    if (!password) {
+        alert('Veuillez entrer votre mot de passe');
+        return;
+    }
+
+    if (!confirm('⚠️ ATTENTION : Vous allez supprimer TOUS les tickets fermés.\nCette action est irréversible.\n\nConfirmer ?')) {
+        return;
+    }
+
+    try {
+        const res = await apiFetch('api.php?action=ticket_delete_all_closed', {
+            method: 'POST',
+            body: { password }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showSuccessAnimation(`${data.count} tickets supprimés`);
+            closeDeleteAllModal();
+            document.getElementById('deletePassword').value = '';
+            currentPage = 1;
+            loadTickets();
+            loadKOPStats();
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur suppression massive:', error);
+        alert('❌ Erreur serveur');
     }
 }
 
 // ==========================================
-// 11. ANIMATIONS & UI HELPERS
+// 11. ANIMATIONS ET UI
 // ==========================================
 
-function showSuccessAnimation(message = 'Action réussie !') {
-    showAnimation(message, '✓', false);
-    setTimeout(hideLoadingAnimation, 1500);
+function showSuccessAnimation(message) {
+    showAnimation('✅', message, 'var(--success)');
 }
+
 function showLoadingAnimation(message = 'Chargement...') {
-    showAnimation(message, '', true);
+    const div = document.createElement('div');
+    div.id = 'globalLoading';
+    div.style.cssText = `position:fixed;top:20px;right:20px;background:white;padding:15px 25px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;z-index:9999;border-left:4px solid var(--primary);`;
+    div.innerHTML = `<div style="width:20px;height:20px;border:2px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><span style="font-weight:500;color:#333;">${message}</span>`;
+    document.body.appendChild(div);
 }
-function showAnimation(message, icon, isLoading) {
-    hideLoadingAnimation(); 
-    const overlay = document.getElementById('overlay');
-    if(overlay) overlay.classList.add('active');
-    const animation = document.createElement('div');
-    animation.id = 'loadingAnimation'; 
-    animation.className = 'message-sent-animation';
-    let iconHtml = '';
-    if (isLoading) {
-        iconHtml = `<div class="animation-icon loading"></div>`; 
-    } else {
-        iconHtml = `<div class="animation-icon">${icon}</div>`;
-    }
-    animation.innerHTML = `
-        ${iconHtml}
-        <h3 style="color:var(--gray-900);margin-bottom:10px;">${message}</h3>
-    `;
-    document.body.appendChild(animation);
+
+function showAnimation(icon, message, color) {
+    const div = document.createElement('div');
+    div.style.cssText = `position:fixed;top:20px;right:20px;background:white;padding:15px 25px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;z-index:9999;animation:slideIn 0.3s ease-out;border-left:4px solid ${color};`;
+    div.innerHTML = `<span style="font-size:20px;">${icon}</span><span style="font-weight:500;color:#333;">${message}</span>`;
+    document.body.appendChild(div);
+    setTimeout(() => {
+        div.style.animation = 'slideOut 0.3s ease-in forwards';
+        setTimeout(() => div.remove(), 300);
+    }, 3000);
 }
+
 function hideLoadingAnimation() {
-    const overlay = document.getElementById('overlay');
-    const animation = document.getElementById('loadingAnimation');
-    if (overlay) overlay.classList.remove('active');
-    if (animation) animation.remove();
+    const el = document.getElementById('globalLoading');
+    if (el) el.remove();
 }
 
 function closeViewModal() {
     document.getElementById('viewTicketModal').classList.remove('active');
-    document.getElementById('ticketDetails').dataset.ticketId = '';
-    if (adminDragDrop) {
-        adminDragDrop.clear();
-    }
+    // Nettoyer l'URL si nécessaire ou l'état
 }
+
 function closeDeleteAllModal() {
     document.getElementById('deleteAllModal').classList.remove('active');
 }
-function logout() {
-    // Le logout se fait maintenant via l'API pour détruire la session PHP
-    apiFetch('api.php?action=logout', { method: 'POST' }).then(() => {
+
+async function logout() {
+    try {
+        await apiFetch('api.php?action=logout', { method: 'POST' });
         window.location.href = 'login.php';
-    });
+    } catch (e) {
+        window.location.href = 'login.php';
+    }
 }
 
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', e => {
-        if (e.target === modal) {
-            if (modal.id === 'viewTicketModal') {
-                closeViewModal();
-            } else {
-                modal.classList.remove('active');
-            }
-        }
-    });
-});
-
-document.addEventListener('ticketsUpdated', () => {
-    console.log('Notification reçue, rafraîchissement des tickets (admin)...');
-    clearTicketsCache(); 
-    loadTickets();
-    loadKOPStats();
-});
-
-setInterval(() => {
-    if (document.querySelector('.modal.active')) return;
-    loadKOPStats();
-    if (currentTab === 'tickets') {
-        loadTickets();
-    }
-}, 30000); 
-
 // ==========================================
-// 12. GESTIONNAIRE D'INACTIVITÉ
+// 12. GESTION INACTIVITÉ
 // ==========================================
 
 class InactivityManager {
     constructor(timeoutMinutes = 15, warningMinutes = 2) {
-        this.timeout = timeoutMinutes * 60 * 1000; 
-        this.warningTime = warningMinutes * 60 * 1000;
-        this.logoutTimer = null;
+        this.timeout = timeoutMinutes * 60 * 1000;
+        this.warning = warningMinutes * 60 * 1000;
+        this.timer = null;
         this.warningTimer = null;
-        this.warningModalVisible = false;
-
-        this.events = ['mousemove', 'keydown', 'click', 'scroll'];
-        this.resetTimer = this.resetTimer.bind(this); 
-        this.showWarning = this.showWarning.bind(this);
-        this.finalLogout = this.finalLogout.bind(this);
+        this.lastActivity = Date.now();
 
         this.init();
     }
 
     init() {
-        this.events.forEach(event => {
-            window.addEventListener(event, this.resetTimer);
+        // Événements à surveiller
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+            document.addEventListener(evt, () => this.resetTimer(), true);
         });
-        this.startTimers();
-        this.injectModalHTML();
-    }
 
-    startTimers() {
-        if (this.warningTimer) clearTimeout(this.warningTimer);
-        if (this.logoutTimer) clearTimeout(this.logoutTimer);
-        this.warningTimer = setTimeout(this.showWarning, this.timeout - this.warningTime);
-        this.logoutTimer = setTimeout(this.finalLogout, this.timeout);
+        // Vérification périodique
+        setInterval(() => this.checkInactivity(), 1000);
+
+        this.injectModalHTML();
+
+        // Gestionnaire du bouton "Rester connecté"
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'stayConnectedBtn') {
+                this.stay();
+            }
+        });
     }
 
     resetTimer() {
-        if (this.warningModalVisible) {
-            this.stay();
-            return;
+        this.lastActivity = Date.now();
+        const modal = document.getElementById('inactivityModal');
+        if (modal && modal.style.display === 'flex') {
+            // Si le modal est affiché, on ne reset pas automatiquement, l'utilisateur doit cliquer
         }
-        this.startTimers();
     }
 
-    showWarning() {
-        this.warningModalVisible = true;
+    checkInactivity() {
+        const now = Date.now();
+        const inactiveTime = now - this.lastActivity;
+        const timeUntilTimeout = this.timeout - inactiveTime;
+
+        if (timeUntilTimeout <= 0) {
+            this.finalLogout();
+        } else if (timeUntilTimeout <= this.warning) {
+            this.showWarning(Math.ceil(timeUntilTimeout / 1000));
+        }
+    }
+
+    showWarning(secondsRemaining) {
         const modal = document.getElementById('inactivityModal');
-        const countdownElement = document.getElementById('inactivityCountdown');
-        if (!modal || !countdownElement) return;
-
-        modal.classList.add('active');
-        
-        let countdown = this.warningTime / 1000;
-        countdownElement.textContent = countdown;
-
-        this.countdownInterval = setInterval(() => {
-            countdown--;
-            countdownElement.textContent = countdown;
-            if (countdown <= 0) {
-                clearInterval(this.countdownInterval);
-            }
-        }, 1000);
+        const timerSpan = document.getElementById('inactivityTimer');
+        if (modal) {
+            modal.style.display = 'flex';
+            if (timerSpan) timerSpan.textContent = secondsRemaining;
+        }
     }
 
     stay() {
+        this.lastActivity = Date.now();
         const modal = document.getElementById('inactivityModal');
-        if (modal) modal.classList.remove('active');
-        
-        if (this.countdownInterval) clearInterval(this.countdownInterval);
-        this.warningModalVisible = false;
-        this.resetTimer();
-        
-        // Petit ping au serveur pour garder la session PHP active
-        apiFetch('api.php?action=get_stats');
+        if (modal) modal.style.display = 'none';
+
+        // Ping le serveur pour garder la session PHP active
+        apiFetch('api.php?action=get_app_settings').catch(() => { });
     }
 
     finalLogout() {
-        logout();
+        window.location.href = 'login.php?timeout=1';
     }
 
     injectModalHTML() {
+        if (document.getElementById('inactivityModal')) return;
         const modalHTML = `
-            <div id="inactivityModal" class="modal">
-                <div class="modal-content" style="max-width: 450px; text-align: center;">
-                    <div class="modal-header">
-                        <h3>Êtes-vous toujours là ?</h3>
-                    </div>
-                    <p style="margin: 20px 0; font-size: 16px;">Vous allez être déconnecté pour inactivité dans <strong id="inactivityCountdown">120</strong> secondes.</p>
-                    <button class="btn btn-primary" onclick="inactivityManager.stay()" style="width: 100%;">Je suis toujours là</button>
+            <div id="inactivityModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+                <div style="background:white;padding:30px;border-radius:12px;text-align:center;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="font-size:48px;margin-bottom:15px;">⏳</div>
+                    <h3 style="margin-bottom:10px;">Inactivité détectée</h3>
+                    <p style="color:var(--gray-600);margin-bottom:20px;">Vous allez être déconnecté dans <span id="inactivityTimer" style="font-weight:bold;color:var(--danger);">60</span> secondes.</p>
+                    <button id="stayConnectedBtn" class="btn btn-primary" style="width:100%;">Rester connecté</button>
                 </div>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 }
-const inactivityManager = new InactivityManager(15, 2); 
+const inactivityManager = new InactivityManager(15, 2);
 let adminDragDrop;

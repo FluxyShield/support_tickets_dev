@@ -198,6 +198,7 @@ if (!$isAdminLoggedIn) {
 
         <nav class="admin-nav">
             <button class="admin-tab active" onclick="switchTab('tickets')">Tickets</button>
+            <button class="admin-tab" onclick="switchTab('users')">Utilisateurs</button>
             <button class="admin-tab" onclick="switchTab('stats')">Statistiques</button>
             <button class="admin-tab" onclick="switchTab('settings')">Paramètres</button>
         </nav>
@@ -251,6 +252,29 @@ if (!$isAdminLoggedIn) {
                 <div id="paginationControls" class="pagination"></div>
             </div>
 
+            <div id="usersTab" class="tab-content">
+                <div class="filters-bar">
+                    <input type="text" id="userSearchInput" onkeyup="handleUserSearch(event)" placeholder="Rechercher par ID...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Inscrit le</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="usersPagination" class="pagination"></div>
+            </div>
+
             <div id="statsTab" class="tab-content">
                 </div>
 
@@ -300,6 +324,7 @@ if (!$isAdminLoggedIn) {
     <script src="js/drag-drop-upload.js"></script>
     <script src="js/admin-stats.js"></script>
     <script src="js/file-viewer-system.js"></script>
+    <script src="js/admin-users.js"></script>
     <script src="js/admin-script.js"></script>
 </body>
 </html>

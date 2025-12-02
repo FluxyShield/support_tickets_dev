@@ -6,7 +6,6 @@
  * Dashboard professionnel avec KPIs, graphiques et analyses
  * ===================================================================
  */
-
 if (!defined('ROOT_PATH')) {
     die('Accès direct non autorisé');
 }
@@ -38,7 +37,12 @@ function get_advanced_stats() {
         'peak_hours' => getPeakHours($db),
         'top_categories' => getTopCategories($db, 5),
         'unassigned' => getUnassignedTickets($db),
-        'trends' => getTrends($db)
+        'trends' => getTrends($db),
+        // Nouvelles stats avancées
+        'forecast' => getForecastData($db),
+        'keywords' => getKeywordAnalysis($db),
+        'agent_load' => getAgentLoad($db),
+        'correlation' => getSatisfactionCorrelation($db)
     ];
     
     jsonResponse(true, 'Statistiques récupérées', $stats);
@@ -358,4 +362,175 @@ function getTrends($db) {
             'variation' => (float)$resolved_variation
         ]
     ];
+}
+
+/**
+ * 🔮 Prédictions de Volume (Forecast)
+ * Régression linéaire simple sur les 30 derniers jours pour prédire les 7 prochains
+ */
+function getForecastData($db) {
+    // Récupérer les données des 30 derniers jours
+    $query = "SELECT DATE(created_at) as date, COUNT(*) as count 
+              FROM tickets 
+              WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+              GROUP BY DATE(created_at) 
+              ORDER BY date ASC";
+    $result = $db->query($query);
+    
+    $data = [];
+    $x = []; // Jours (0, 1, 2...)
+    $y = []; // Nombre de tickets
+    $i = 0;
+    
+    while ($row = $result->fetch_assoc()) {
+        $data[] = ['date' => $row['date'], 'count' => (int)$row['count']];
+        $x[] = $i++;
+        $y[] = (int)$row['count'];
+    }
+    
+    // Si pas assez de données, pas de prédiction
+    if (count($data) < 5) return [];
+    
+    // Calcul Régression Linéaire : y = mx + b
+    $n = count($x);
+    $sumX = array_sum($x);
+    $sumY = array_sum($y);
+    $sumXY = 0;
+    $sumXX = 0;
+    
+    for ($j = 0; $j < $n; $j++) {
+        $sumXY += $x[$j] * $y[$j];
+        $sumXX += $x[$j] * $x[$j];
+    }
+    
+    $denominator = ($n * $sumXX) - ($sumX * $sumX);
+    if ($denominator == 0) return []; // Éviter division par zéro
+    
+    $m = (($n * $sumXY) - ($sumX * $sumY)) / $denominator;
+    $b = ($sumY - ($m * $sumX)) / $n;
+    
+    // Générer les prédictions pour les 7 prochains jours
+    $forecast = [];
+    $lastDate = end($data)['date'];
+    
+    for ($k = 1; $k <= 7; $k++) {
+        $nextDayIndex = $n - 1 + $k;
+        $predictedValue = ($m * $nextDayIndex) + $b;
+        $predictedValue = max(0, round($predictedValue)); // Pas de tickets négatifs
+        
+        $forecast[] = [
+            'date' => date('Y-m-d', strtotime("$lastDate +$k days")),
+            'count' => (int)$predictedValue
+        ];
+    }
+    
+    return $forecast;
+}
+
+/**
+ * 🧠 Analyse Sémantique (Mots-clés fréquents)
+ */
+function getKeywordAnalysis($db) {
+    $query = "SELECT subject_encrypted FROM tickets WHERE created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)";
+    $result = $db->query($query);
+    
+    $text = "";
+    while ($row = $result->fetch_assoc()) {
+        $text .= " " . strtolower(decrypt($row['subject_encrypted']));
+    }
+    
+    // Liste basique de "stop words" français à ignorer
+    $stopWords = ['le', 'la', 'les', 'de', 'du', 'des', 'un', 'une', 'et', 'à', 'en', 'pour', 'sur', 'dans', 'au', 'aux', 'ce', 'cette', 'ces', 'mon', 'ma', 'mes', 'je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'pas', 'ne', 'que', 'qui', 'quoi', 'ou', 'où', 'est', 'sont', 'avoir', 'être', 'faire', 'ticket', 'problème', 'bug', 'erreur', 'bonjour', 'merci', 'svp', 'urgent', 'test', 'aide', 'besoin', 'question', 'demande', 'souci', 'impossible', 'marche', 'fonctionne', 'plus', 'très', 'trop', 'avec', 'sans', 'sous', 'par'];
+    
+    // Tokenisation simple
+    $words = str_word_count($text, 1, 'àâäéèêëîïôöùûüç1234567890');
+    $wordCounts = array_count_values($words);
+    
+    // Filtrer et trier
+    $filtered = [];
+    foreach ($wordCounts as $word => $count) {
+        if (strlen($word) > 3 && !in_array($word, $stopWords)) {
+            $filtered[$word] = $count;
+        }
+    }
+    
+    arsort($filtered);
+    
+    // Top 20
+    $topKeywords = [];
+    $i = 0;
+    foreach ($filtered as $word => $count) {
+        if ($i++ >= 20) break;
+        $topKeywords[] = ['word' => $word, 'count' => $count];
+    }
+    
+    return $topKeywords;
+}
+
+/**
+ * ⚖️ Charge de Travail & Risque (Agent Load)
+ */
+function getAgentLoad($db) {
+    // Récupérer les admins
+    $admins = [];
+    $res = $db->query("SELECT id, firstname_encrypted, lastname_encrypted FROM users WHERE role = 'admin'");
+    while ($row = $res->fetch_assoc()) {
+        $admins[$row['id']] = [
+            'name' => decrypt($row['firstname_encrypted']) . ' ' . decrypt($row['lastname_encrypted']),
+            'load_score' => 0,
+            'tickets_count' => 0,
+            'high_priority' => 0
+        ];
+    }
+    
+    // Calculer la charge
+    // Priorité Haute = 3 pts, Moyenne = 2 pts, Basse = 1 pt
+    $query = "SELECT assigned_to, priority_encrypted FROM tickets WHERE status IN ('Ouvert', 'En cours') AND assigned_to IS NOT NULL";
+    $result = $db->query($query);
+    
+    while ($row = $result->fetch_assoc()) {
+        $adminId = $row['assigned_to'];
+        if (isset($admins[$adminId])) {
+            $priority = decrypt($row['priority_encrypted']);
+            $points = ($priority === 'Haute') ? 3 : (($priority === 'Moyenne') ? 2 : 1);
+            
+            $admins[$adminId]['tickets_count']++;
+            $admins[$adminId]['load_score'] += $points;
+            if ($priority === 'Haute') $admins[$adminId]['high_priority']++;
+        }
+    }
+    
+    // Convertir en tableau indexé et trier par charge
+    $loadData = array_values($admins);
+    usort($loadData, function($a, $b) {
+        return $b['load_score'] - $a['load_score'];
+    });
+    
+    return $loadData;
+}
+
+/**
+ * 📉 Corrélation Satisfaction / Temps de résolution
+ */
+function getSatisfactionCorrelation($db) {
+    $query = "SELECT 
+                t.id,
+                TIMESTAMPDIFF(HOUR, t.created_at, t.closed_at) as hours,
+                r.rating
+              FROM tickets t
+              JOIN ticket_reviews r ON t.id = r.ticket_id
+              WHERE t.status = 'Fermé' AND t.closed_at IS NOT NULL
+              LIMIT 100"; // Limiter pour la performance et la lisibilité
+              
+    $result = $db->query($query);
+    
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = [
+            'x' => round($row['hours'], 1),
+            'y' => (int)$row['rating']
+        ];
+    }
+    
+    return $data;
 }

@@ -328,8 +328,6 @@ function ticket_create() {
     if ($stmt->execute()) {
         // ⭐ SOLUTION : Récupérer l'ID du ticket qui vient d'être inséré
         $ticket_id = $stmt->insert_id;
-        // Et le renvoyer au client pour la redirection
-
         // --- NOUVEAU : Envoi de l'email de confirmation ---
         $user_email = decrypt($user_email_enc);
         $user_firstname = $_SESSION['firstname'];
@@ -347,6 +345,32 @@ function ticket_create() {
 
         // On envoie l'email (l'échec n'empêche pas la création du ticket)
         sendEmail($user_email, $email_subject, $email_body);
+        
+        // --- NOUVEAU : Notification aux administrateurs ---
+        $admin_subject = "[Nouveau Ticket #{$ticket_id}] " . $subject;
+        $admin_link = APP_URL_BASE . '/admin.php#ticket-' . $ticket_id;
+        $admin_body = "
+            <h2 style='color: #4A4A49;'>Nouveau ticket créé</h2>
+            <p><strong>Utilisateur :</strong> " . htmlspecialchars($user_firstname . ' ' . $_SESSION['lastname']) . "</p>
+            <p><strong>Sujet :</strong> " . htmlspecialchars($subject) . "</p>
+            <p><strong>Priorité :</strong> " . htmlspecialchars($priority) . "</p>
+            <p><strong>Catégorie :</strong> " . htmlspecialchars($category) . "</p>
+            <hr>
+            <p>" . nl2br(htmlspecialchars($description)) . "</p>
+            <p style='text-align: center; margin: 30px 0;'><a href='{$admin_link}' style='background: #4A4A49; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Gérer le ticket</a></p>
+        ";
+
+        // Récupérer tous les emails des admins
+        $stmt_admins = $db->prepare("SELECT email_encrypted FROM users WHERE role = 'admin'");
+        $stmt_admins->execute();
+        $res_admins = $stmt_admins->get_result();
+        
+        while ($admin = $res_admins->fetch_assoc()) {
+            $admin_email = decrypt($admin['email_encrypted']);
+            if ($admin_email) {
+                sendEmail($admin_email, $admin_subject, $admin_body);
+            }
+        }
         // --- FIN DE L'AJOUT ---
 
         jsonResponse(true, 'Ticket créé avec succès.', ['ticket_id' => $ticket_id]);

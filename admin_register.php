@@ -1,38 +1,3 @@
-<?php
-    /**
-     * ===================================================================
-     * ⭐ SÉCURITÉ : VÉRIFICATION DU JETON CÔTÉ SERVEUR (AVANT TOUT HTML)
-     * ===================================================================
-     * Ce bloc est la première chose que le serveur exécute.
-     * On vérifie la validité du jeton AVANT d'envoyer le moindre code HTML.
-     * Si le jeton est manquant, invalide ou expiré, on redirige
-     * l'utilisateur vers la page de connexion sans jamais lui montrer
-     * le formulaire d'inscription.
-     */
-    define('ROOT_PATH', __DIR__);
-    require_once 'config.php';
-    $token = $_GET['token'] ?? '';
-    if (empty($token)) {
-        header('Location: login.php?error=notoken');
-        exit();
-    }
-
-    require_once 'validate_token.php'; // Inclut la logique de validation
-    if (!function_exists('isTokenValid') || !isTokenValid($token)) {
-        header('Location: login.php?error=invalidtoken');
-        exit();
-    }
-
-    initialize_session(); // Initialise la session mais n'envoie plus les headers.
-
-    // Le jeton est valide, on peut maintenant envoyer les en-têtes de sécurité.
-    setSecurityHeaders();
-?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Finaliser l'inscription Admin - Support Ticketing</title>
     <style>

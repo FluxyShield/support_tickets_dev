@@ -178,3 +178,52 @@ function unassign_ticket() {
         jsonResponse(false, 'Erreur lors de la désassignation.');
     }
 }
+
+function delete_admin() {
+    requireAuth('admin');
+    $input = getInput();
+    $admin_id_to_delete = filter_var($input['admin_id'] ?? 0, FILTER_VALIDATE_INT);
+
+    if (!$admin_id_to_delete) {
+        jsonResponse(false, 'ID administrateur invalide.');
+    }
+
+    // 1. Empêcher l'auto-suppression
+    if ($admin_id_to_delete === $_SESSION['admin_id']) {
+        jsonResponse(false, 'Vous ne pouvez pas supprimer votre propre compte.');
+    }
+
+    $db = Database::getInstance()->getConnection();
+
+    // 2. Vérifier que l'admin existe
+    $check_stmt = $db->prepare("SELECT id FROM users WHERE id = ? AND role = 'admin'");
+    $check_stmt->bind_param("i", $admin_id_to_delete);
+    $check_stmt->execute();
+    if ($check_stmt->get_result()->num_rows === 0) {
+        jsonResponse(false, 'Administrateur introuvable.');
+    }
+
+    // 3. Vérifier qu'il reste au moins un autre admin
+    $count_stmt = $db->query("SELECT COUNT(id) as count FROM users WHERE role = 'admin'");
+    $count = $count_stmt->fetch_assoc()['count'];
+    if ($count <= 1) {
+        jsonResponse(false, 'Impossible de supprimer le dernier administrateur.');
+    }
+
+    // 4. Réassigner les tickets de cet admin (optionnel, ou les mettre à NULL)
+    // Ici on les met à NULL (non assigné)
+    $update_tickets = $db->prepare("UPDATE tickets SET assigned_to = NULL, assigned_at = NULL WHERE assigned_to = ?");
+    $update_tickets->bind_param("i", $admin_id_to_delete);
+    $update_tickets->execute();
+
+    // 5. Supprimer l'admin
+    $delete_stmt = $db->prepare("DELETE FROM users WHERE id = ?");
+    $delete_stmt->bind_param("i", $admin_id_to_delete);
+
+    if ($delete_stmt->execute()) {
+        logAuditEvent('ADMIN_DELETED', $admin_id_to_delete, ['deleted_by' => $_SESSION['admin_id']]);
+        jsonResponse(true, 'Administrateur supprimé avec succès.');
+    } else {
+        jsonResponse(false, 'Erreur lors de la suppression.');
+    }
+}
