@@ -235,3 +235,18 @@ function requireAuth($role = null) {
         jsonResponse(false, 'Authentification utilisateur requise');
     }
 }
+
+function initialize_session() {
+    if (session_status() === PHP_SESSION_NONE) {
+        // Paramètres de sécurité de session
+        ini_set('session.cookie_httponly', 1);
+        ini_set('session.use_only_cookies', 1);
+        ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) ? 1 : 0);
+        
+        session_start();
+    }
+    
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+}

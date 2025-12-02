@@ -41,6 +41,12 @@ apt-get update && apt-get upgrade -y
 log_info "Installation de MariaDB Server et OpenSSL..."
 apt-get install -y mariadb-server ufw openssl sshpass
 
+# Vérification de l'installation
+if [ $? -ne 0 ]; then
+    log_error "Erreur lors de l'installation des paquets."
+    exit 1
+fi
+
 # 3. Génération des certificats SSL (Méthode Robuste)
 log_info "Génération des certificats SSL..."
 mkdir -p $SSL_DIR

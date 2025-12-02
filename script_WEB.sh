@@ -34,8 +34,8 @@ DB_SSL_DIR="/etc/ssl/db-client" # Certificats client pour la BDD
 WEB_SSL_DIR="/etc/ssl/web-server" # Certificats HTTPS pour Nginx
 
 # Domaines
-DOMAIN_USER="ticket.descamps-bois.fr"
-DOMAIN_ADMIN="admin.descamps-bois.fr"
+DOMAIN_USER="dev.ticket.descamps-bois.fr"
+DOMAIN_ADMIN="dev.admin.descamps-bois.fr"
 
 # 1. Mise à jour du système
 log_info "Mise à jour du système..."
@@ -44,7 +44,14 @@ apt-get update && apt-get upgrade -y
 # 2. Installation des paquets nécessaires (Nginx + PHP-FPM)
 log_info "Installation de Nginx, PHP-FPM et extensions..."
 # Debian 12 utilise PHP 8.2 par défaut
-apt-get install -y nginx php-fpm php-mysql php-mbstring php-xml php-curl php-zip git unzip mysql-client openssl
+# Note: mysql-client est remplacé par mariadb-client sur Debian 12
+apt-get install -y nginx php-fpm php-cli php-mysql php-mbstring php-xml php-curl php-zip git unzip curl mariadb-client openssl
+
+# Vérification de l'installation
+if [ $? -ne 0 ]; then
+    log_error "Erreur lors de l'installation des paquets."
+    exit 1
+fi
 
 # 3. Vérification des certificats SSL BDD (Transférés par script_BDD.sh)
 log_info "Vérification des certificats SSL client BDD..."
