@@ -181,7 +181,7 @@ if (!$isAdminLoggedIn) {
     <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
     <title>Tableau de bord - Support</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
     <div class="admin-grid-container">

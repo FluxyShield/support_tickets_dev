@@ -3,21 +3,32 @@
    ======================================== */
 :root {
     /* --- Charte Descamps Spécifique --- */
-    --primary: #7C7C7B;       /* Gris moyen Descamps */
-    --primary-dark: #4A4A49;  /* Gris foncé Descamps (Textes titres) */
-    --orange: #EF8000;        /* Orange Descamps (Actions) */
-    --gray-light: #EDEDED;    /* Gris clair Descamps (Bordures douces) */
-    --gray-medium: #7C7C7B;   /* Alias Gris moyen */
-    --gray-dark: #4A4A49;     /* Alias Gris foncé */
-    
-    /* --- Variables Système (Existantes) --- */
-    --text-main: #4A4A49;     /* Modifié pour utiliser ton Gris Foncé */
-    --text-muted: #7C7C7B;    /* Modifié pour utiliser ton Gris Moyen */
-    --bg-body: #f3f4f6;       /* Fond général */
-    --bg-card: #ffffff;       /* Fond des blocs */
-    --bg-input: #f9fafb;      
-    --danger: #D32F2F;        /* Pour les actions de suppression */
-    
+    --primary: #7C7C7B;
+    /* Gris moyen Descamps */
+    --primary-dark: #4A4A49;
+    /* Gris foncé Descamps (Textes titres) */
+    --orange: #EF8000;
+    /* Orange Descamps (Actions) */
+    --gray-light: #EDEDED;
+    /* Gris clair Descamps (Bordures douces) */
+    --gray-medium: #7C7C7B;
+    /* Alias Gris moyen */
+    --gray-dark: #4A4A49;
+    /* Alias Gris foncé */
+
+    /* --- Variables Système --- */
+    --text-main: #4A4A49;
+    /* Gris Foncé pour le texte */
+    --text-muted: #7C7C7B;
+    /* Gris Moyen pour les détails */
+    --bg-body: #f3f4f6;
+    /* Fond général gris clair (différent du gradient client) */
+    --bg-card: #ffffff;
+    /* Fond des blocs blanc */
+    --bg-input: #f9fafb;
+    --danger: #D32F2F;
+    /* Pour les actions de suppression */
+
     /* --- Ombres & Tailles --- */
     --border-color: #e5e7eb;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -98,7 +109,7 @@ body {
 }
 
 .btn-logout {
-    background-color: #dc2626; /* Rouge un peu plus doux */
+    background-color: #dc2626;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -150,7 +161,8 @@ body {
 .admin-tab.active {
     color: var(--orange);
     border-bottom-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05); /* Fond orange très léger */
+    background: rgba(239, 128, 0, 0.05);
+    /* Fond orange très léger */
 }
 
 /* Conteneurs d'onglets */
@@ -164,8 +176,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ========================================
@@ -192,11 +211,22 @@ body {
     box-shadow: var(--shadow-md);
 }
 
-/* Effets de couleur KPI adaptés à la charte si besoin, sinon standard */
-.kpi-card.total { background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; }
-.kpi-card.open { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; }
-.kpi-card.in-progress { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
-.kpi-card.closed { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; }
+/* Effets de couleur KPI */
+.kpi-card.total {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
+}
+
+.kpi-card.open {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.kpi-card.in-progress {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+}
+
+.kpi-card.closed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
 
 .kpi-value {
     font-size: 32px;
@@ -212,7 +242,7 @@ body {
 }
 
 /* ========================================
-   3. BARRE DE FILTRES & FORMULAIRES
+   3. BARRE DE FILTRES
    ======================================== */
 .filters-bar {
     display: flex;
@@ -222,9 +252,7 @@ body {
 }
 
 .filters-bar input,
-.filters-bar select,
-.filters-bar #adminSearchInput,
-.filters-bar #userSearchInput {
+.filters-bar select {
     padding: 12px 15px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -234,7 +262,6 @@ body {
     outline: none;
     min-width: 200px;
     box-shadow: var(--shadow-sm);
-    transition: border-color 0.2s;
 }
 
 .filters-bar input:focus,
@@ -283,8 +310,13 @@ td {
     vertical-align: middle;
 }
 
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #f9fafb; }
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: #f9fafb;
+}
 
 /* Badges Statut */
 .badge {
@@ -294,9 +326,21 @@ tr:hover td { background: #f9fafb; }
     font-weight: bold;
     text-transform: uppercase;
 }
-.badge-open { background: #dbeafe; color: #1e40af; }
-.badge-in-progress { background: #fef3c7; color: #92400e; }
-.badge-closed { background: #d1fae5; color: #065f46; }
+
+.badge-open {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-in-progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-closed {
+    background: #d1fae5;
+    color: #065f46;
+}
 
 /* ========================================
    5. BOUTONS & PAGINATION
@@ -311,9 +355,20 @@ tr:hover td { background: #f9fafb; }
     margin-right: 5px;
 }
 
-.btn-view { background-color: #6b7280; color: white; }
-.btn-edit { background-color: var(--orange); color: white; }
-.btn-delete { background-color: var(--danger); color: white; }
+.btn-view {
+    background-color: #6b7280;
+    color: white;
+}
+
+.btn-edit {
+    background-color: var(--orange);
+    color: white;
+}
+
+.btn-delete {
+    background-color: var(--danger);
+    color: white;
+}
 
 .pagination {
     display: flex;
@@ -344,10 +399,9 @@ tr:hover td { background: #f9fafb; }
 }
 
 /* ========================================
-   7. PARAMÈTRES (REFONTE TOTALE)
+   7. PARAMÈTRES (STYLE MODERNE / SIDEBAR)
    ======================================== */
 
-/* Le titre global de la section paramètres */
 .settings-header-title {
     display: flex;
     align-items: center;
@@ -358,18 +412,18 @@ tr:hover td { background: #f9fafb; }
     font-weight: 700;
 }
 
-/* Le conteneur principal "Carte Blanche" */
+/* La Carte Principale Paramètres */
 .settings-main-card {
     background: var(--bg-card);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Ombre douce */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--border-color);
-    display: flex; /* Flexbox pour mettre Sidebar et Contenu côte à côte */
+    display: flex;
     min-height: 600px;
     overflow: hidden;
 }
 
-/* --- COLONNE GAUCHE (MENU) --- */
+/* Menu Latéral (Gauche) */
 .settings-sidebar {
     width: 260px;
     background: #fff;
@@ -380,7 +434,6 @@ tr:hover td { background: #f9fafb; }
     gap: 10px;
 }
 
-/* Boutons du menu latéral */
 .sidebar-btn {
     display: flex;
     align-items: center;
@@ -388,8 +441,8 @@ tr:hover td { background: #f9fafb; }
     width: 100%;
     padding: 14px 20px;
     border: 1px solid var(--gray-light);
-    background: var(--white);
-    color: var(--primary); /* Gris moyen */
+    background: var(--bg-card);
+    color: var(--primary);
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
@@ -403,17 +456,16 @@ tr:hover td { background: #f9fafb; }
     color: var(--primary-dark);
 }
 
-/* État actif (Orange) */
 .sidebar-btn.active {
     border-color: var(--orange);
     color: var(--orange);
-    background: #FFF8F0; /* Orange très pâle */
+    background: #FFF8F0;
     box-shadow: 0 2px 4px rgba(239, 128, 0, 0.05);
 }
 
-/* --- COLONNE DROITE (CONTENU) --- */
+/* Zone Contenu (Droite) */
 .settings-content-area {
-    flex: 1; /* Prend tout l'espace restant */
+    flex: 1;
     padding: 30px;
     background: var(--bg-card);
 }
@@ -427,14 +479,13 @@ tr:hover td { background: #f9fafb; }
     padding-bottom: 15px;
 }
 
-/* --- GRILLE GESTION ADMINS (Inviter + Liste) --- */
+/* Grille Gestion Admins */
 .admin-management-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Deux colonnes égales */
+    grid-template-columns: 1fr 1fr;
     gap: 30px;
 }
 
-/* Style des sous-cartes (blocs gris/blanc) */
 .admin-sub-card {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -442,9 +493,8 @@ tr:hover td { background: #f9fafb; }
     background: #fff;
 }
 
-/* Carte "Inviter" avec fond gris très léger comme sur la maquette */
 .invite-card {
-    background-color: #FAFAFA; 
+    background-color: #FAFAFA;
 }
 
 .admin-sub-card h4 {
@@ -461,7 +511,6 @@ tr:hover td { background: #f9fafb; }
     line-height: 1.4;
 }
 
-/* Inputs spécifiques aux paramètres */
 .input-settings {
     width: 100%;
     padding: 12px;
@@ -470,7 +519,6 @@ tr:hover td { background: #f9fafb; }
     margin-bottom: 20px;
     font-size: 14px;
     box-sizing: border-box;
-    transition: border-color 0.2s;
 }
 
 .input-settings:focus {
@@ -479,15 +527,6 @@ tr:hover td { background: #f9fafb; }
     box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
 }
 
-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: var(--primary-dark);
-}
-
-/* Bouton pleine largeur orange */
 .btn-block-orange {
     background-color: var(--orange);
     color: white;
@@ -497,7 +536,6 @@ label {
     font-weight: 600;
     cursor: pointer;
     width: 100%;
-    transition: background 0.2s;
     font-size: 14px;
 }
 
@@ -505,7 +543,6 @@ label {
     background-color: #d67200;
 }
 
-/* Liste des admins existants */
 .admin-list-item {
     display: flex;
     justify-content: space-between;
@@ -518,11 +555,6 @@ label {
     border-bottom: none;
 }
 
-.admin-name {
-    font-weight: 600;
-    color: var(--primary-dark);
-}
-
 .badge-you {
     background: var(--gray-light);
     padding: 4px 10px;
@@ -532,11 +564,8 @@ label {
     font-weight: bold;
 }
 
-/* ========================================
-   RESPONSIVE (Modifications pour Mobile)
-   ======================================== */
+/* Responsive Admin */
 @media (max-width: 900px) {
-    /* Layout paramètres passe en colonne */
     .settings-main-card {
         flex-direction: column;
     }
@@ -546,18 +575,12 @@ label {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
         padding: 15px;
-        flex-direction: row; /* Onglets horizontaux sur mobile */
+        flex-direction: row;
         overflow-x: auto;
-        box-sizing: border-box;
-    }
-
-    .sidebar-btn {
-        width: auto;
-        white-space: nowrap;
     }
 
     .admin-management-grid {
-        grid-template-columns: 1fr; /* Une seule colonne */
+        grid-template-columns: 1fr;
     }
 }
 
@@ -567,11 +590,10 @@ label {
         height: auto;
         gap: 15px;
     }
-    
+
     .admin-tabs {
         flex-direction: column;
         background: white;
-        border: 1px solid var(--border-color);
         border-radius: 8px;
     }
 
