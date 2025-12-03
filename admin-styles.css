@@ -66,8 +66,10 @@
 }
 
 /* ========================================
-   2. CARTES KPI (Statistiques)
+   CARTES STATISTIQUES COLORÉES
    ======================================== */
+
+/* Grille KPI */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -75,39 +77,131 @@
     margin-bottom: 30px;
 }
 
+/* Style de base pour toutes les cartes KPI */
 .kpi-card {
-    /* Fond semi-transparent style "Glassmorphism" */
-    background: var(--bg-dark-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: var(--border-glass);
-    color: var(--text-light);
+    color: white;
     padding: 25px;
     border-radius: 16px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    transition: transform 0.3s, border-color 0.3s;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    transition: all 0.5s;
 }
 
 .kpi-card:hover {
     transform: translateY(-5px);
-    border-color: var(--orange);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
 }
 
-.kpi-card h4 {
-    margin: 0 0 10px 0;
-    font-size: 14px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 600;
+.kpi-card:hover::before {
+    top: -25%;
+    right: -25%;
 }
 
-.kpi-card p {
-    margin: 0;
+/* Couleurs spécifiques pour chaque type de carte */
+
+/* Carte Total - Gris foncé */
+.kpi-card.total {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+}
+
+/* Carte Ouverts - Orange */
+.kpi-card.open {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Carte En Cours - Orange plus foncé */
+.kpi-card.in-progress {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+}
+
+/* Carte Fermés - Vert */
+.kpi-card.closed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.kpi-icon {
+    font-size: 48px;
+    position: relative;
+    z-index: 1;
+}
+
+.kpi-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.kpi-value {
     font-size: 32px;
     font-weight: 700;
-    color: var(--text-light);
+    margin-bottom: 5px;
+}
+
+.kpi-label {
+    font-size: 14px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-variation {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kpi-card {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .kpi-card {
+        padding: 20px;
+    }
+    
+    .kpi-value {
+        font-size: 24px;
+    }
 }
 
 /* ========================================
