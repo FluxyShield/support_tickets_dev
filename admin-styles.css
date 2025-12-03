@@ -1,21 +1,28 @@
 /* ========================================
-   VARIABLES & THÈME ADMIN
+   VARIABLES & THÈME ADMIN (LIGHT THEME)
    ======================================== */
 :root {
     --orange: #EF8000;
-    --text-light: #f3f4f6;
-    --text-muted: #9ca3af;
-    /* Effet verre pour le fond sombre */
-    --bg-dark-glass: rgba(30, 30, 30, 0.6);
-    --bg-dark-input: rgba(0, 0, 0, 0.3);
-    --border-glass: 1px solid rgba(255, 255, 255, 0.1);
+    --text-main: #1f2937;
+    /* Gris très foncé pour le texte principal */
+    --text-muted: #6b7280;
+    /* Gris moyen pour le texte secondaire */
+    --bg-body: #f3f4f6;
+    /* Gris clair pour le fond de page */
+    --bg-card: #ffffff;
+    /* Blanc pour les conteneurs */
+    --bg-input: #f9fafb;
+    /* Gris très clair pour les inputs */
+    --border-color: #e5e7eb;
+    /* Bordure grise légère */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --header-height: 70px;
 }
 
 body {
-    background: #4A4A49;
-    /* Gris foncé Descamps */
-    color: var(--text-light);
+    background: var(--bg-body);
+    color: var(--text-main);
     font-family: 'Source Sans Pro', sans-serif;
     margin: 0;
     min-height: 100vh;
@@ -41,19 +48,18 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    background: var(--bg-dark-glass);
-    backdrop-filter: blur(10px);
+    background: var(--bg-card);
     border-radius: 16px;
-    border: var(--border-glass);
+    border: 1px solid var(--border-color);
     margin-bottom: 20px;
     height: var(--header-height);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
 }
 
 .header-left .logo {
     font-size: 24px;
     font-weight: 800;
-    color: white;
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -83,7 +89,7 @@ body {
 }
 
 .admin-profile strong {
-    color: white;
+    color: var(--text-main);
 }
 
 /* ========================================
@@ -93,10 +99,11 @@ body {
     display: flex;
     gap: 10px;
     margin-bottom: 30px;
-    background: var(--bg-dark-glass);
+    background: var(--bg-card);
     padding: 10px;
     border-radius: 12px;
-    border: var(--border-glass);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ========================================
@@ -113,9 +120,8 @@ body {
 .admin-tabs {
     display: flex;
     background: transparent;
-    /* Rendre transparent pour voir le fond gris */
     margin-bottom: 30px;
-    border-bottom: var(--border-glass);
+    border-bottom: 1px solid var(--border-color);
     box-shadow: none;
 }
 
@@ -137,14 +143,14 @@ body {
 }
 
 .admin-tab:hover {
-    color: var(--text-light);
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.02);
 }
 
 .admin-tab.active {
     color: var(--orange);
     border-bottom-color: var(--orange);
-    background: rgba(239, 128, 0, 0.1);
+    background: rgba(239, 128, 0, 0.05);
 }
 
 /* Conteneurs d'onglets */
@@ -170,9 +176,8 @@ body {
 }
 
 /* ========================================
-   CARTES STATISTIQUES COLORÉES - VERSION FORCÉE
+   CARTES STATISTIQUES (KPI)
    ======================================== */
-
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -183,6 +188,7 @@ body {
 /* Style de base pour TOUTES les cartes KPI */
 .kpi-card {
     color: white !important;
+    /* On garde le texte blanc sur les cartes colorées */
     padding: 25px;
     border-radius: 16px;
     display: flex;
@@ -192,6 +198,7 @@ body {
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
+    box-shadow: var(--shadow-md);
 }
 
 /* Effet brillant au survol */
@@ -202,13 +209,13 @@ body {
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
     transition: all 0.5s;
 }
 
 .kpi-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
 .kpi-card:hover::before {
@@ -216,41 +223,21 @@ body {
     right: -25%;
 }
 
-/* ============================================
-   COULEURS SPÉCIFIQUES PAR TYPE DE CARTE
-   ============================================ */
-
-/* Carte Total - GRIS FONCÉ */
+/* Couleurs spécifiques KPI */
 .kpi-card.total {
-    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
 }
 
-/* Carte Ouverts - ORANGE CLAIR */
 .kpi-card.open {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
 }
 
-/* Carte En Cours - ORANGE FONCÉ */
 .kpi-card.in-progress {
     background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
 }
 
-/* Carte Fermés - VERT */
 .kpi-card.closed {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-}
-
-/* Contenu des cartes */
-.kpi-icon {
-    font-size: 48px;
-    position: relative;
-    z-index: 1;
-}
-
-.kpi-content {
-    flex: 1;
-    position: relative;
-    z-index: 1;
 }
 
 .kpi-value {
@@ -266,111 +253,6 @@ body {
     letter-spacing: 0.5px;
 }
 
-.kpi-variation {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Animation d'apparition */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.kpi-card {
-    animation: fadeInUp 0.5s ease forwards;
-}
-
-.kpi-card:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.kpi-card:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.kpi-card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.kpi-card:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .kpi-card {
-        padding: 20px;
-    }
-
-    .kpi-value {
-        font-size: 24px;
-    }
-}
-
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.kpi-card {
-    animation: fadeInUp 0.5s ease forwards;
-}
-
-.kpi-card:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.kpi-card:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.kpi-card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.kpi-card:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .kpi-card {
-        padding: 20px;
-    }
-
-    .kpi-value {
-        font-size: 24px;
-    }
-}
-
 /* ========================================
    3. BARRE DE FILTRES & FORMULAIRES
    ======================================== */
@@ -381,56 +263,58 @@ body {
     flex-wrap: wrap;
 }
 
-/* Styles des inputs pour qu'ils ne soient pas blanc éclatant */
 .filters-bar input,
 .filters-bar select,
 .filters-bar #adminSearchInput,
 .filters-bar #userSearchInput {
     padding: 12px 15px;
-    background: var(--bg-dark-input);
-    border: var(--border-glass);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: var(--text-light);
+    color: var(--text-main);
     font-size: 14px;
     outline: none;
     min-width: 200px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s;
 }
 
 .filters-bar input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-muted);
 }
 
 .filters-bar input:focus,
 .filters-bar select:focus {
     border-color: var(--orange);
-    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
 }
 
 .filters-bar select option {
-    background: #333;
-    /* Fond sombre pour les options du menu déroulant */
-    color: white;
+    background: white;
+    color: var(--text-main);
 }
 
 /* ========================================
    4. TABLEAUX DE DONNÉES
    ======================================== */
 .table-container {
-    background: var(--bg-dark-glass);
+    background: var(--bg-card);
     border-radius: 12px;
     overflow: hidden;
-    border: var(--border-glass);
+    border: 1px solid var(--border-color);
     margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    color: var(--text-light);
+    color: var(--text-main);
 }
 
 thead {
-    background: rgba(0, 0, 0, 0.3);
+    background: #f9fafb;
+    border-bottom: 1px solid var(--border-color);
 }
 
 th {
@@ -440,12 +324,12 @@ th {
     color: var(--text-muted);
     font-size: 13px;
     text-transform: uppercase;
-    border-bottom: var(--border-glass);
+    letter-spacing: 0.5px;
 }
 
 td {
     padding: 15px;
-    border-bottom: var(--border-glass);
+    border-bottom: 1px solid var(--border-color);
     font-size: 14px;
     vertical-align: middle;
 }
@@ -455,10 +339,10 @@ tr:last-child td {
 }
 
 tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+    background: #f9fafb;
 }
 
-/* Badges dans le tableau */
+/* Badges */
 .badge {
     padding: 5px 10px;
     border-radius: 20px;
@@ -467,25 +351,24 @@ tr:hover td {
     text-transform: uppercase;
 }
 
-/* Surcharge des couleurs de badges pour le mode sombre si nécessaire */
 .badge-open {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .badge-in-progress {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .badge-closed {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .badge-high {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 /* ========================================
@@ -506,36 +389,41 @@ tr:hover td {
 
 .pagination-btn {
     padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: var(--text-light);
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
 }
 
 .pagination-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
+    background: #f3f4f6;
+    border-color: #d1d5db;
 }
 
 .pagination-btn.active {
     background: var(--orange);
     color: white;
+    border-color: var(--orange);
     font-weight: bold;
 }
 
 .pagination-btn:disabled {
-    opacity: 0.3;
+    opacity: 0.5;
     cursor: not-allowed;
+    background: #f3f4f6;
 }
 
 /* ========================================
-   6. RESPONSIVE (Mobiles)
+   6. RESPONSIVE
    ======================================== */
 @media (max-width: 768px) {
     .admin-tabs {
         flex-direction: column;
-        background: rgba(0, 0, 0, 0.2);
+        background: white;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
     }
 
@@ -549,7 +437,7 @@ tr:hover td {
     .admin-tab.active {
         border-bottom: none;
         border-left-color: var(--orange);
-        background: rgba(255, 255, 255, 0.05);
+        background: #fff7ed;
     }
 
     .filters-bar {
@@ -561,14 +449,12 @@ tr:hover td {
         width: 100%;
     }
 
-    /* Tableau responsive (scroll horizontal) */
     .table-container {
         overflow-x: auto;
     }
 
     table {
         min-width: 600px;
-        /* Force le scroll si trop petit */
     }
 }
 
@@ -582,10 +468,11 @@ tr:hover td {
 }
 
 .settings-section {
-    background: var(--bg-dark-glass);
+    background: var(--bg-card);
     border-radius: 12px;
     padding: 25px;
-    border: var(--border-glass);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .settings-section h3 {
@@ -593,8 +480,11 @@ tr:hover td {
     margin-bottom: 20px;
     color: var(--orange);
     font-size: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .settings-grid {
@@ -604,18 +494,30 @@ tr:hover td {
 }
 
 .settings-card {
-    background: rgba(0, 0, 0, 0.2);
+    background: #f9fafb;
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background: white;
+    border-color: #d1d5db;
 }
 
 .settings-card h4 {
     margin-top: 0;
-    color: white;
+    color: var(--text-main);
+    font-size: 16px;
+    margin-bottom: 8px;
 }
 
 /* Style spécifique pour la table utilisateurs dans les paramètres */
 #settingsTab .table-container {
     margin-top: 0;
+    box-shadow: none;
+    border: 1px solid var(--border-color);
 }
