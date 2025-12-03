@@ -199,7 +199,6 @@ if (!$isAdminLoggedIn) {
 
         <nav class="admin-nav">
             <button class="admin-tab active" onclick="switchTab('tickets')">Tickets</button>
-            <button class="admin-tab" onclick="switchTab('users')">Utilisateurs</button>
             <button class="admin-tab" onclick="switchTab('stats')">Statistiques</button>
             <button class="admin-tab" onclick="switchTab('settings')">Paramètres</button>
         </nav>
@@ -253,34 +252,54 @@ if (!$isAdminLoggedIn) {
                 <div id="paginationControls" class="pagination"></div>
             </div>
 
-            <div id="usersTab" class="tab-content">
-                <div class="filters-bar">
-                    <input type="text" id="userSearchInput" onkeyup="handleUserSearch(event)" placeholder="Rechercher par ID...">
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nom</th>
-                                <th>Email</th>
-                                <th>Rôle</th>
-                                <th>Inscrit le</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTable">
-                        </tbody>
-                    </table>
-                </div>
-                <div id="usersPagination" class="pagination"></div>
-            </div>
-
             <div id="statsTab" class="tab-content">
                 </div>
 
             <div id="settingsTab" class="tab-content">
+                <div class="settings-container">
+                    <!-- Section Gestion des Utilisateurs -->
+                    <div class="settings-section">
+                        <h3>👥 Gestion des Utilisateurs</h3>
+                        <div class="filters-bar">
+                            <input type="text" id="userSearchInput" onkeyup="handleUserSearch(event)" placeholder="Rechercher par ID...">
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Rôle</th>
+                                        <th>Inscrit le</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="usersPagination" class="pagination"></div>
+                    </div>
+
+                    <!-- Autres paramètres (Placeholders) -->
+                    <div class="settings-section">
+                        <h3>⚙️ Configuration Générale</h3>
+                        <div class="settings-grid">
+                            <div class="settings-card">
+                                <h4>Notifications</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">Gérer les préférences de notification par email.</p>
+                                <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Configurer</button>
+                            </div>
+                            <div class="settings-card">
+                                <h4>Sécurité</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">Modifier le mot de passe administrateur et les accès.</p>
+                                <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Gérer</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
         </main>
     </div>
 
