@@ -5,30 +5,33 @@
    var(--orange) = rgb(239, 128, 0); Gris variés pour neutralité. */
 
 /* ========================================
-   NAVIGATION PAR ONGLETS (Améliorée pour plus de fluidité)
+   NAVIGATION PAR ONGLETS (Dark Mode)
    ======================================== */
 
 .admin-tabs {
     display: flex;
     flex-wrap: wrap;
-    /* Allow wrapping to prevent compaction */
     justify-content: flex-start;
     gap: 0;
     margin-bottom: 30px;
-    background: white;
+    background: var(--gray-dark);
+    /* Dark background */
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--gray-600);
 }
 
 .admin-tab {
     flex: 0 1 auto;
     padding: 16px 24px;
-    background: white;
+    background: var(--gray-dark);
+    /* Dark background */
     border: none;
     font-size: 16px;
     font-weight: 600;
-    color: var(--gray-600);
+    color: var(--gray-200);
+    /* Light text */
     cursor: pointer;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
@@ -39,14 +42,14 @@
 }
 
 .admin-tab:hover {
-    background: var(--gray-50);
+    background: var(--gray-700);
     color: var(--orange);
 }
 
 .admin-tab.active {
     color: var(--orange);
     border-bottom-color: var(--orange);
-    background: rgba(239, 128, 0, 0.08);
+    background: rgba(239, 128, 0, 0.1);
 }
 
 .tab-content {
@@ -90,15 +93,16 @@
 }
 
 /* ========================================
-   STYLES D'ASSIGNATION (Simplifiés et plus responsifs)
+   STYLES D'ASSIGNATION (Dark Mode)
    ======================================== */
 
 .assignment-section {
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
+    background: var(--gray-700);
+    border: 2px solid var(--gray-600);
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 24px;
+    color: white;
 }
 
 .assignment-body {
@@ -111,6 +115,9 @@
 .assignment-body select {
     flex: 1 1 200px;
     min-width: 200px;
+    background: var(--gray-900);
+    color: white;
+    border: 1px solid var(--gray-600);
 }
 
 .assignment-actions {
@@ -120,15 +127,15 @@
 
 /* Badge pour admin assigné */
 .badge-assigned {
-    background: var(--gray-200);
-    color: var(--gray-700);
+    background: var(--gray-600);
+    color: white;
     font-weight: 600;
     padding: 6px 12px;
     border-radius: 20px;
 }
 
 /* ========================================
-   STYLES POUR L'ONGLET MODÈLES (Optimisés pour scroll fluide)
+   STYLES POUR L'ONGLET MODÈLES (Dark Mode)
    ======================================== */
 
 .canned-layout {
@@ -138,15 +145,16 @@
 }
 
 .canned-form {
-    background: var(--gray-50);
+    background: var(--gray-700);
     padding: 28px;
     border-radius: 12px;
-    border: 2px solid var(--gray-200);
+    border: 2px solid var(--gray-600);
+    color: white;
 }
 
 .canned-form h3,
 .canned-list h3 {
-    color: var(--gray-900);
+    color: white;
     font-size: 20px;
     margin-bottom: 20px;
 }
@@ -163,11 +171,12 @@
     align-items: center;
     gap: 16px;
     padding: 20px;
-    background: white;
-    border: 2px solid var(--gray-200);
+    background: var(--gray-700);
+    border: 2px solid var(--gray-600);
     border-radius: 10px;
     margin-bottom: 16px;
     transition: all 0.3s ease;
+    color: white;
 }
 
 .canned-item:hover {
@@ -182,14 +191,14 @@
 }
 
 .canned-item-info strong {
-    color: var(--gray-900);
+    color: white;
     font-size: 16px;
     display: block;
     margin-bottom: 6px;
 }
 
 .canned-item-info p {
-    color: var(--gray-600);
+    color: var(--gray-200);
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
@@ -204,7 +213,7 @@
 }
 
 /* ========================================
-   STYLES POUR L'ONGLET PARAMÈTRES (Nettoyés, sans duplication)
+   STYLES POUR L'ONGLET PARAMÈTRES (Dark Mode)
    ======================================== */
 
 .settings-layout {
@@ -222,12 +231,12 @@
 .settings-sub-tab {
     width: 100%;
     padding: 16px 24px;
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
+    background: var(--gray-700);
+    border: 2px solid var(--gray-600);
     border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
-    color: var(--gray-700);
+    color: var(--gray-200);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
@@ -237,21 +246,22 @@
 }
 
 .settings-sub-tab:hover {
-    background: var(--gray-100);
+    background: var(--gray-600);
     border-color: var(--gray-400);
 }
 
 .settings-sub-tab.active {
-    background: rgba(239, 128, 0, 0.08);
+    background: rgba(239, 128, 0, 0.1);
     border-color: var(--orange);
     color: var(--orange);
 }
 
 .settings-content {
-    background: white;
+    background: var(--gray-700);
     padding: 32px;
     border-radius: 12px;
-    border: 2px solid var(--gray-200);
+    border: 2px solid var(--gray-600);
+    color: white;
 }
 
 @media (max-width: 900px) {
@@ -275,16 +285,16 @@
 }
 
 /* ========================================
-   STYLES POUR LE DRAG-DROP (Améliorés pour interactivité)
+   STYLES POUR LE DRAG-DROP (Dark Mode)
    ======================================== */
 
 .custom-drop-zone {
-    border: 2px dashed var(--gray-300);
+    border: 2px dashed var(--gray-400);
     border-radius: 12px;
     padding: 32px;
     text-align: center;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    background: var(--gray-700);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
@@ -298,7 +308,7 @@
 
 .custom-drop-zone.drag-over {
     border-color: var(--orange);
-    background: rgba(239, 128, 0, 0.06);
+    background: rgba(239, 128, 0, 0.1);
     transform: scale(1.03);
     box-shadow: 0 8px 24px rgba(239, 128, 0, 0.25);
 }
@@ -317,23 +327,23 @@
 .custom-drop-zone-text {
     font-size: 16px;
     font-weight: 600;
-    color: var(--gray-900);
+    color: white;
     margin-bottom: 6px;
 }
 
 .custom-drop-zone-subtext {
     font-size: 13px;
-    color: var(--gray-600);
+    color: var(--gray-400);
 }
 
 .custom-drop-zone-info {
     margin-top: 16px;
     font-size: 12px;
-    color: var(--gray-600);
+    color: var(--gray-400);
 }
 
 /* ========================================
-   DASHBOARD STATISTIQUES AVANCÉES (Refait pour plus de modernité et responsivité)
+   DASHBOARD STATISTIQUES AVANCÉES (Dark Mode)
    ======================================== */
 
 /* Header du dashboard */
@@ -347,7 +357,7 @@
 }
 
 .stats-header h2 {
-    color: var(--gray-900);
+    color: white;
     font-size: 28px;
     margin: 0;
 }
@@ -360,19 +370,19 @@
 
 .period-btn {
     padding: 10px 24px;
-    background: white;
-    border: 2px solid var(--gray-200);
+    background: var(--gray-700);
+    border: 2px solid var(--gray-600);
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
-    color: var(--gray-700);
+    color: var(--gray-200);
     transition: all 0.3s ease;
 }
 
 .period-btn:hover {
     border-color: var(--orange);
-    background: rgba(239, 128, 0, 0.06);
+    background: rgba(239, 128, 0, 0.1);
 }
 
 .period-btn.active {
@@ -382,7 +392,7 @@
     box-shadow: 0 4px 16px rgba(239, 128, 0, 0.3);
 }
 
-/* Grille KPI (Plus compacte) */
+/* Grille KPI (Dark Mode) */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -402,6 +412,20 @@
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    border: 1px solid var(--gray-600);
+}
+
+.kpi-card h4 {
+    color: white !important;
+    /* Force white text */
+    margin: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.kpi-card p {
+    color: white !important;
 }
 
 .kpi-card::before {
@@ -441,6 +465,7 @@
     font-size: 32px;
     font-weight: 700;
     margin-bottom: 6px;
+    color: white;
 }
 
 .kpi-label {
@@ -448,21 +473,10 @@
     opacity: 0.9;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.kpi-variation {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
     color: white;
-    /* Uniformisé pour contraste */
-    opacity: 0.85;
 }
 
-/* Grille graphiques (Plus flexible) */
+/* Grille graphiques (Dark Mode) */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
@@ -471,12 +485,13 @@
 }
 
 .chart-card {
-    background: white;
+    background: var(--gray-700);
     border-radius: 16px;
     padding: 28px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--gray-200);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--gray-600);
     transition: all 0.3s ease;
+    color: white;
 }
 
 .chart-card:hover {
@@ -487,11 +502,11 @@
 .chart-header {
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 2px solid var(--gray-100);
+    border-bottom: 2px solid var(--gray-600);
 }
 
 .chart-header h3 {
-    color: var(--gray-900);
+    color: white;
     font-size: 18px;
     margin: 0;
     display: flex;
@@ -499,13 +514,13 @@
     gap: 12px;
 }
 
-/* Section performance admins */
+/* Section performance admins (Dark Mode) */
 .performance-section {
     margin-bottom: 32px;
 }
 
 .performance-section h3 {
-    color: var(--gray-900);
+    color: white;
     font-size: 20px;
     margin-bottom: 24px;
 }
@@ -514,12 +529,13 @@
     display: flex;
     align-items: center;
     gap: 24px;
-    background: white;
+    background: var(--gray-700);
     padding: 24px;
     border-radius: 12px;
     margin-bottom: 16px;
-    border: 2px solid var(--gray-200);
+    border: 2px solid var(--gray-600);
     transition: all 0.3s ease;
+    color: white;
 }
 
 .admin-performance-card:hover {
@@ -543,7 +559,7 @@
 .admin-name {
     font-weight: 600;
     font-size: 16px;
-    color: var(--gray-900);
+    color: white;
     margin-bottom: 8px;
 }
 
@@ -551,7 +567,7 @@
     display: flex;
     gap: 16px;
     font-size: 13px;
-    color: var(--gray-600);
+    color: var(--gray-200);
     flex-wrap: wrap;
 }
 
@@ -561,7 +577,7 @@
 
 .progress-bar {
     height: 12px;
-    background: var(--gray-200);
+    background: var(--gray-600);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 6px;
@@ -575,11 +591,11 @@
 
 .progress-label {
     font-size: 12px;
-    color: var(--gray-600);
+    color: var(--gray-200);
     font-weight: 600;
 }
 
-/* Grille bottom (top catégories + non assignés) */
+/* Grille bottom (Dark Mode) */
 .bottom-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -593,14 +609,16 @@
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: var(--gray-50);
+    background: var(--gray-700);
     border-radius: 10px;
     margin-bottom: 12px;
     transition: all 0.3s ease;
+    color: white;
+    border: 1px solid var(--gray-600);
 }
 
 .top-item:hover {
-    background: rgba(239, 128, 0, 0.06);
+    background: rgba(239, 128, 0, 0.1);
     transform: translateX(6px);
 }
 
@@ -618,13 +636,13 @@
 
 .top-name {
     font-weight: 600;
-    color: var(--gray-900);
+    color: white;
     margin-bottom: 8px;
 }
 
 .top-bar {
     height: 8px;
-    background: var(--gray-200);
+    background: var(--gray-600);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -639,7 +657,7 @@
 .top-count {
     font-size: 20px;
     font-weight: 700;
-    color: var(--gray-700);
+    color: var(--gray-200);
 }
 
 /* Tickets non assignés */
@@ -648,16 +666,19 @@
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: var(--gray-50);
+    background: var(--gray-700);
     border-radius: 10px;
     margin-bottom: 12px;
     border-left: 4px solid var(--orange);
     cursor: pointer;
     transition: all 0.3s ease;
+    color: white;
+    border: 1px solid var(--gray-600);
+    border-left-width: 4px;
 }
 
 .unassigned-item:hover {
-    background: rgba(239, 128, 0, 0.06);
+    background: rgba(239, 128, 0, 0.1);
     transform: translateX(6px);
     box-shadow: 0 6px 16px rgba(239, 128, 0, 0.12);
 }
@@ -674,7 +695,7 @@
 
 .unassigned-subject {
     font-weight: 600;
-    color: var(--gray-900);
+    color: white;
     margin-bottom: 6px;
 }
 
@@ -683,18 +704,142 @@
     gap: 12px;
     align-items: center;
     font-size: 12px;
-    color: var(--gray-600);
+    color: var(--gray-400);
 }
 
-.empty-alert {
-    text-align: center;
-    padding: 40px;
-    color: var(--success);
+/* ========================================
+   FILTRES ET RECHERCHE (Dark Mode)
+   ======================================== */
+
+.filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filters-bar input,
+.filters-bar select {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--gray-600);
+    background: var(--gray-700);
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filters-bar input:focus,
+.filters-bar select:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.2);
+}
+
+.filters-bar input::placeholder {
+    color: var(--gray-400);
+}
+
+/* ========================================
+   TABLEAUX (Dark Mode)
+   ======================================== */
+
+.table-container {
+    background: var(--gray-700);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--gray-600);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tickets-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: white;
+}
+
+.tickets-table th {
+    background: var(--gray-900);
+    color: var(--gray-200);
     font-weight: 600;
-    font-size: 16px;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 2px solid var(--gray-600);
 }
 
-/* Animations (Améliorées pour fluidité) */
+.tickets-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--gray-600);
+    color: var(--gray-100);
+    vertical-align: middle;
+}
+
+.tickets-table tr:last-child td {
+    border-bottom: none;
+}
+
+.tickets-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ticket-row-unread {
+    background: rgba(239, 128, 0, 0.1) !important;
+    border-left: 3px solid var(--orange);
+}
+
+/* ========================================
+   MODAL (Dark Mode)
+   ======================================== */
+
+.modal-content {
+    background: var(--gray-700);
+    color: white;
+    border: 1px solid var(--gray-600);
+}
+
+.modal-header {
+    border-bottom-color: var(--gray-600);
+}
+
+.modal-header h3 {
+    color: white;
+}
+
+.close-modal {
+    color: var(--gray-400);
+}
+
+.close-modal:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.message {
+    background: var(--gray-600);
+    color: white;
+    border-left-color: var(--gray-400);
+}
+
+.message-admin {
+    background: rgba(239, 128, 0, 0.1);
+    border-left-color: var(--orange);
+}
+
+.message-user {
+    background: rgba(16, 185, 129, 0.1);
+    border-left-color: var(--success);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -747,7 +892,7 @@
     animation-delay: 0.45s;
 }
 
-/* Responsive global (Amélioré pour petits écrans) */
+/* Responsive global */
 @media (max-width: 1200px) {
     .charts-grid {
         grid-template-columns: 1fr;
@@ -768,37 +913,8 @@
         padding: 24px;
     }
 
-    /* Top catégories */
     .top-item {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        background: var(--gray-50);
-        border-radius: 10px;
-        margin-bottom: 12px;
-        transition: all 0.3s ease;
-    }
-
-    .top-item:hover {
-        background: rgba(239, 128, 0, 0.06);
-        transform: translateX(6px);
-    }
-
-    .top-rank {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--orange);
-        min-width: 40px;
-        text-align: center;
-    }
-
-    .top-info {
-        flex: 1;
-    }
-
-    .top-name {
-        font-weight: 600;
-        color: var(--gray-900);
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

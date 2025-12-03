@@ -231,7 +231,7 @@ if (!$isAdminLoggedIn) {
                 </div>
                 
                 <div class="table-container">
-                    <table>
+                    <table class="tickets-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
