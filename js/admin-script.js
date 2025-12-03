@@ -428,7 +428,7 @@ function showErrorMessage(message) {
 }
 
 // Recherche et filtres
-let searchTimeout = null;
+// let searchTimeout = null; // REMOVED: Duplicate declaration
 function debouncedSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
