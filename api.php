@@ -1,12 +1,20 @@
 <?php
-/**
- * @file api.php
- * @brief Routeur API sécurisé avec gestion globale des erreurs.
- */
-define('ROOT_PATH', __DIR__);
-require_once 'config.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', __DIR__);
+}
+
+// Chargement de la configuration
+require_once ROOT_PATH . '/config.php';
 
 // Désactiver l'affichage des erreurs HTML pour ne pas casser le JSON
+// On le fait APRÈS config.php car config.php peut le réactiver
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL);
+
+// Initialisation de la session
+initialize_session();
+
 // Chargement des fichiers API
 require_once ROOT_PATH . '/api/auth.php';
 require_once ROOT_PATH . '/api/tickets.php';
@@ -38,4 +46,3 @@ try {
     // On renvoie un JSON propre au client pour qu'il ne plante pas
     jsonResponse(false, 'Erreur serveur interne : ' . $e->getMessage());
 }
-?>

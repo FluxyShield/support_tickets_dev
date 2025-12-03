@@ -417,4 +417,3 @@ function logout() {
     session_destroy();
     jsonResponse(true, 'Déconnexion réussie.');
 }
-?>
