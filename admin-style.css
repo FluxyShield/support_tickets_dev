@@ -3,32 +3,20 @@
    ======================================== */
 :root {
     /* --- Charte Descamps Spécifique --- */
-    --primary: #7C7C7B;
-    /* Gris moyen Descamps */
-    --primary-dark: #4A4A49;
-    /* Gris foncé Descamps (Textes titres) */
-    --orange: #EF8000;
-    /* Orange Descamps (Actions) */
-    --gray-light: #EDEDED;
-    /* Gris clair Descamps (Bordures douces) */
-    --gray-medium: #7C7C7B;
-    /* Alias Gris moyen */
-    --gray-dark: #4A4A49;
-    /* Alias Gris foncé */
-
+    --primary: #7C7C7B;       
+    --primary-dark: #4A4A49;  
+    --orange: #EF8000;        
+    --gray-light: #EDEDED;    
+    --gray-medium: #7C7C7B;   
+    --gray-dark: #4A4A49;     
+    
     /* --- Variables Système --- */
-    --text-main: #4A4A49;
-    /* Gris Foncé pour le texte */
-    --text-muted: #7C7C7B;
-    /* Gris Moyen pour les détails */
-    --bg-body: #f3f4f6;
-    /* Fond général gris clair (différent du gradient client) */
-    --bg-card: #ffffff;
-    /* Fond des blocs blanc */
-    --bg-input: #f9fafb;
-    --danger: #D32F2F;
-    /* Pour les actions de suppression */
-
+    --text-main: #2c2c2c;     /* Noir adouci pour meilleure lisibilité */
+    --text-muted: #666666;    
+    --bg-body: #f3f4f6;       
+    --bg-card: #ffffff;       
+    --danger: #D32F2F;        
+    
     /* --- Ombres & Tailles --- */
     --border-color: #e5e7eb;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -162,10 +150,8 @@ body {
     color: var(--orange);
     border-bottom-color: var(--orange);
     background: rgba(239, 128, 0, 0.05);
-    /* Fond orange très léger */
 }
 
-/* Conteneurs d'onglets */
 .tab-content {
     display: none;
     animation: fadeIn 0.3s ease;
@@ -176,19 +162,12 @@ body {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ========================================
-   CARTES STATISTIQUES (KPI)
+   2. CARTES STATISTIQUES (KPI) - CORRECTIF
    ======================================== */
 .kpi-grid {
     display: grid;
@@ -197,8 +176,11 @@ body {
     margin-bottom: 30px;
 }
 
+/* Style DE BASE (Fallback de sécurité) */
+/* Si la couleur saute, on aura un fond blanc et du texte foncé (lisible) */
 .kpi-card {
-    color: white !important;
+    background: white; 
+    color: var(--text-main) !important; /* Texte foncé par défaut */
     padding: 25px;
     border-radius: 16px;
     display: flex;
@@ -209,23 +191,34 @@ body {
     transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
     box-shadow: var(--shadow-md);
+    border: 1px solid transparent; /* Prépare la bordure */
 }
 
-/* Effets de couleur KPI */
-.kpi-card.total {
-    background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
+/* Si la classe spécifique est présente, ALORS on met le fond et le texte blanc */
+.kpi-card.total { 
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important; 
+    color: white !important;
 }
 
-.kpi-card.open {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+.kpi-card.open { 
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; 
+    color: white !important;
 }
 
-.kpi-card.in-progress {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+.kpi-card.in-progress { 
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; 
+    color: white !important;
 }
 
-.kpi-card.closed {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+.kpi-card.closed { 
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; 
+    color: white !important;
+}
+
+/* Hover Effect */
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .kpi-value {
@@ -242,7 +235,7 @@ body {
 }
 
 /* ========================================
-   3. BARRE DE FILTRES
+   3. BARRE DE FILTRES & INPUTS
    ======================================== */
 .filters-bar {
     display: flex;
@@ -257,11 +250,15 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: var(--text-main);
+    color: #333 !important; /* Force la couleur foncée */
     font-size: 14px;
     outline: none;
     min-width: 200px;
     box-shadow: var(--shadow-sm);
+}
+
+.filters-bar input::placeholder {
+    color: #999;
 }
 
 .filters-bar input:focus,
@@ -296,8 +293,8 @@ thead {
 th {
     padding: 15px;
     text-align: left;
-    font-weight: 600;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: var(--primary-dark); /* Plus foncé pour lisibilité */
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -308,15 +305,11 @@ td {
     border-bottom: 1px solid var(--border-color);
     font-size: 14px;
     vertical-align: middle;
+    color: #333; /* Texte bien noir */
 }
 
-tr:last-child td {
-    border-bottom: none;
-}
-
-tr:hover td {
-    background: #f9fafb;
-}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f9fafb; }
 
 /* Badges Statut */
 .badge {
@@ -325,22 +318,11 @@ tr:hover td {
     font-size: 11px;
     font-weight: bold;
     text-transform: uppercase;
+    display: inline-block;
 }
-
-.badge-open {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.badge-in-progress {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-closed {
-    background: #d1fae5;
-    color: #065f46;
-}
+.badge-open { background: #dbeafe; color: #1e40af; }
+.badge-in-progress { background: #fef3c7; color: #92400e; }
+.badge-closed { background: #d1fae5; color: #065f46; }
 
 /* ========================================
    5. BOUTONS & PAGINATION
@@ -353,22 +335,12 @@ tr:hover td {
     cursor: pointer;
     font-weight: 600;
     margin-right: 5px;
+    color: white; /* Texte blanc forcé sur boutons colorés */
 }
 
-.btn-view {
-    background-color: #6b7280;
-    color: white;
-}
-
-.btn-edit {
-    background-color: var(--orange);
-    color: white;
-}
-
-.btn-delete {
-    background-color: var(--danger);
-    color: white;
-}
+.btn-view { background-color: #6b7280; }
+.btn-edit { background-color: var(--orange); }
+.btn-delete { background-color: var(--danger); }
 
 .pagination {
     display: flex;
@@ -388,18 +360,11 @@ tr:hover td {
     transition: all 0.2s;
 }
 
-.pagination-btn:hover:not(:disabled) {
-    background: #f3f4f6;
-}
-
-.pagination-btn.active {
-    background: var(--orange);
-    color: white;
-    border-color: var(--orange);
-}
+.pagination-btn:hover:not(:disabled) { background: #f3f4f6; }
+.pagination-btn.active { background: var(--orange); color: white; border-color: var(--orange); }
 
 /* ========================================
-   7. PARAMÈTRES (STYLE MODERNE / SIDEBAR)
+   7. PARAMÈTRES (REFONTE TOTALE - DESIGN CARD)
    ======================================== */
 
 .settings-header-title {
@@ -412,7 +377,6 @@ tr:hover td {
     font-weight: 700;
 }
 
-/* La Carte Principale Paramètres */
 .settings-main-card {
     background: var(--bg-card);
     border-radius: 12px;
@@ -423,7 +387,7 @@ tr:hover td {
     overflow: hidden;
 }
 
-/* Menu Latéral (Gauche) */
+/* Sidebar Gauche */
 .settings-sidebar {
     width: 260px;
     background: #fff;
@@ -463,7 +427,7 @@ tr:hover td {
     box-shadow: 0 2px 4px rgba(239, 128, 0, 0.05);
 }
 
-/* Zone Contenu (Droite) */
+/* Contenu Droite */
 .settings-content-area {
     flex: 1;
     padding: 30px;
@@ -479,7 +443,6 @@ tr:hover td {
     padding-bottom: 15px;
 }
 
-/* Grille Gestion Admins */
 .admin-management-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -493,9 +456,7 @@ tr:hover td {
     background: #fff;
 }
 
-.invite-card {
-    background-color: #FAFAFA;
-}
+.invite-card { background-color: #FAFAFA; }
 
 .admin-sub-card h4 {
     margin-top: 0;
@@ -518,6 +479,7 @@ tr:hover td {
     border-radius: 6px;
     margin-bottom: 20px;
     font-size: 14px;
+    color: #333; /* Texte input foncé */
     box-sizing: border-box;
 }
 
@@ -539,9 +501,7 @@ tr:hover td {
     font-size: 14px;
 }
 
-.btn-block-orange:hover {
-    background-color: #d67200;
-}
+.btn-block-orange:hover { background-color: #d67200; }
 
 .admin-list-item {
     display: flex;
@@ -551,9 +511,7 @@ tr:hover td {
     border-bottom: 1px solid var(--gray-light);
 }
 
-.admin-list-item:last-child {
-    border-bottom: none;
-}
+.admin-list-item:last-child { border-bottom: none; }
 
 .badge-you {
     background: var(--gray-light);
@@ -564,12 +522,9 @@ tr:hover td {
     font-weight: bold;
 }
 
-/* Responsive Admin */
+/* Responsive */
 @media (max-width: 900px) {
-    .settings-main-card {
-        flex-direction: column;
-    }
-
+    .settings-main-card { flex-direction: column; }
     .settings-sidebar {
         width: 100%;
         border-right: none;
@@ -578,33 +533,12 @@ tr:hover td {
         flex-direction: row;
         overflow-x: auto;
     }
-
-    .admin-management-grid {
-        grid-template-columns: 1fr;
-    }
+    .admin-management-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-    .admin-header {
-        flex-direction: column;
-        height: auto;
-        gap: 15px;
-    }
-
-    .admin-tabs {
-        flex-direction: column;
-        background: white;
-        border-radius: 8px;
-    }
-
-    .admin-tab {
-        border-bottom: none;
-        border-left: 3px solid transparent;
-        justify-content: flex-start;
-    }
-
-    .admin-tab.active {
-        border-left-color: var(--orange);
-        background: #fff7ed;
-    }
+    .admin-header { flex-direction: column; height: auto; gap: 15px; }
+    .admin-tabs { flex-direction: column; background: white; border-radius: 8px; }
+    .admin-tab { border-bottom: none; border-left: 3px solid transparent; justify-content: flex-start; }
+    .admin-tab.active { border-left-color: var(--orange); background: #fff7ed; }
 }
