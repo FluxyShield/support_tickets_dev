@@ -66,10 +66,9 @@
 }
 
 /* ========================================
-   CARTES STATISTIQUES COLORÉES
+   CARTES STATISTIQUES COLORÉES - VERSION FORCÉE
    ======================================== */
 
-/* Grille KPI */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -77,9 +76,9 @@
     margin-bottom: 30px;
 }
 
-/* Style de base pour toutes les cartes KPI */
+/* Style de base pour TOUTES les cartes KPI */
 .kpi-card {
-    color: white;
+    color: white !important;
     padding: 25px;
     border-radius: 16px;
     display: flex;
@@ -91,6 +90,7 @@
     cursor: pointer;
 }
 
+/* Effet brillant au survol */
 .kpi-card::before {
     content: '';
     position: absolute;
@@ -112,28 +112,31 @@
     right: -25%;
 }
 
-/* Couleurs spécifiques pour chaque type de carte */
+/* ============================================
+   COULEURS SPÉCIFIQUES PAR TYPE DE CARTE
+   ============================================ */
 
-/* Carte Total - Gris foncé */
+/* Carte Total - GRIS FONCÉ */
 .kpi-card.total {
-    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
 }
 
-/* Carte Ouverts - Orange */
+/* Carte Ouverts - ORANGE CLAIR */
 .kpi-card.open {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
 }
 
-/* Carte En Cours - Orange plus foncé */
+/* Carte En Cours - ORANGE FONCÉ */
 .kpi-card.in-progress {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
 }
 
-/* Carte Fermés - Vert */
+/* Carte Fermés - VERT */
 .kpi-card.closed {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
 }
 
+/* Contenu des cartes */
 .kpi-icon {
     font-size: 48px;
     position: relative;
@@ -166,6 +169,42 @@
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+/* Animation d'apparition */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kpi-card {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .kpi-card {
+        padding: 20px;
+    }
+    
+    .kpi-value {
+        font-size: 24px;
+    }
 }
 
 /* Animations */

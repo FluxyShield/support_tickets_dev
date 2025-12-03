@@ -1,14 +1,4 @@
-/**
- * @file style.css
- * @brief Feuille de style principale pour l'application de support.
- *
- * Ce fichier contient tous les styles globaux de l'application, y compris :
- * - La définition des variables CSS (charte graphique, couleurs, etc.).
- * - Les styles de base pour le corps, la typographie, les conteneurs.
- * - Les styles pour les composants réutilisables : boutons, formulaires, modales, cartes, badges.
- * - Les styles spécifiques aux différentes sections (admin, utilisateur).
- * - Les requêtes media pour le design responsive sur différentes tailles d'écran.
- */
+/* Importer la police Source Sans Pro */
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
 
 * {
@@ -121,14 +111,6 @@ body {
 .btn-secondary:hover {
     background: var(--gray-200);
     border-color: var(--gray-medium);
-    transform: translateY(-2px);
-}
-
-.btn.active {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
     transform: translateY(-2px);
 }
 
@@ -1129,6 +1111,10 @@ p {
     background: rgba(239, 128, 0, 0.03);
     transform: translateX(4px);
 }
+/* ========================================
+   STYLES D'AVIS CLIENT (ÉTOILES)
+   ======================================== */
+
 .rating-stars {
     display: flex;
     flex-direction: row-reverse; /* Permet le hover "de gauche à droite" */
@@ -1136,6 +1122,7 @@ p {
     gap: 10px;
     margin-bottom: 20px;
 }
+
 /* Cacher les boutons radio */
 .rating-stars input {
     display: none;
@@ -1147,12 +1134,14 @@ p {
     cursor: pointer;
     transition: color 0.2s;
 }
+
 /* Quand on survole ou coche une étoile, elle et celles à sa "gauche" (en fait à droite à cause du reverse) se colorent */
 .rating-stars input:checked ~ label,
 .rating-stars label:hover,
 .rating-stars label:hover ~ label {
     color: #f59e0b; /* Jaune/Orange pour les étoiles pleines */
 }
+
 /* Badge pour une note déjà donnée */
 .user-rating-display {
     font-weight: 600;
@@ -1163,6 +1152,7 @@ p {
     display: inline-block;
     font-size: 13px;
 }
+
 /* Bouton pour donner un avis */
 .btn-review {
     background: #f59e0b;
@@ -1180,6 +1170,10 @@ p {
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
+/* ========================================
+   STYLES POUR LE NOUVEAU DRAG-DROP
+   ======================================== */
+
 .custom-drop-zone {
     border: 2px dashed var(--gray-300); /* Bordure en pointillés gris */
     border-radius: 16px; /* Bords arrondis */
@@ -1192,10 +1186,12 @@ p {
     position: relative;
     overflow: hidden;
 }
+
 .custom-drop-zone:hover {
     border-color: var(--orange); /* Bordure orange au survol */
     box-shadow: 0 8px 20px rgba(239, 128, 0, 0.2); /* Ombre orange */
 }
+
 /* Style quand on déplace un fichier par-dessus */
 .custom-drop-zone.drag-over {
     border-color: var(--orange);
@@ -1203,6 +1199,7 @@ p {
     transform: scale(1.02);
     box-shadow: 0 8px 24px rgba(239, 128, 0, 0.2);
 }
+
 .custom-drop-zone-icon {
     font-size: 48px;
     margin-bottom: 10px;
@@ -1212,24 +1209,32 @@ p {
     height: 60px;
     display: inline-block; /* Pour centrer le SVG */
 }
+
 .custom-drop-zone:hover .custom-drop-zone-icon {
     transform: scale(1.1) translateY(-5px);
 }
+
 .custom-drop-zone-text {
     font-size: 16px;
     font-weight: 600;
     color: var(--gray-900);
     margin-bottom: 5px;
 }
+
 .custom-drop-zone-subtext {
     font-size: 13px;
     color: var(--gray-600);
 }
+
 .custom-drop-zone-info {
     margin-top: 15px;
     font-size: 12px;
     color: var(--gray-600);
 }
+/* ========================================
+   STYLES POUR MESSAGES SYSTÈME
+   ======================================== */
+
 .message-system {
     border-left: 4px solid var(--gray-400);
     background: var(--gray-50);
@@ -1239,9 +1244,14 @@ p {
     font-size: 13px;
     padding: 10px 15px;
 }
+
 .message-system strong {
     font-style: normal;
 }
+/* ========================================
+   STYLES POUR MESSAGES SYSTÈME
+   ======================================== */
+
 .message-system {
     border-left: 4px solid var(--gray-400);
     background: var(--gray-50);
@@ -1251,10 +1261,15 @@ p {
     font-size: 13px;
     padding: 10px 15px;
 }
+
 .message-system strong {
     font-style: normal;
     color: var(--gray-900);
 }
+/* ========================================
+   STYLES POUR LA PAGINATION
+   ======================================== */
+
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -1262,6 +1277,7 @@ p {
     gap: 10px;
     margin-top: 30px;
 }
+
 .pagination-btn {
     padding: 10px 18px;
     border: 2px solid var(--gray-200);
@@ -1272,21 +1288,25 @@ p {
     background: white;
     color: var(--gray-700);
 }
+
 .pagination-btn:hover:not(:disabled) {
     background: var(--gray-100);
     border-color: var(--gray-400);
 }
+
 .pagination-btn:disabled {
     background: var(--gray-50);
     color: var(--gray-400);
     cursor: not-allowed;
 }
+
 .pagination-btn.active {
     background: var(--orange);
     border-color: var(--orange);
     color: white;
     box-shadow: 0 4px 12px rgba(239, 128, 0, 0.2);
 }
+
 .pagination-info {
     font-size: 14px;
     color: var(--gray-600);
