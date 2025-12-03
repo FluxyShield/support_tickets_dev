@@ -1,28 +1,35 @@
 /* ========================================
-   VARIABLES DE COULEURS (Conservées telles quelles)
+   VARIABLES & THÈME ADMIN
    ======================================== */
-/* Note: Les variables comme var(--orange), var(--gray-XXX) sont assumées définies dans un fichier root CSS. 
-   var(--orange) = rgb(239, 128, 0); Gris variés pour neutralité. */
+:root {
+    --orange: #EF8000;
+    --text-light: #f3f4f6;
+    --text-muted: #9ca3af;
+    /* Effet verre pour le fond sombre */
+    --bg-dark-glass: rgba(30, 30, 30, 0.6); 
+    --bg-dark-input: rgba(0, 0, 0, 0.3);
+    --border-glass: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-/* Navigation par onglets */
+/* ========================================
+   1. NAVIGATION (Menu Latéral / Onglets)
+   ======================================== */
 .admin-tabs {
     display: flex;
-    gap: 0;
+    background: transparent; /* Rendre transparent pour voir le fond gris */
     margin-bottom: 30px;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: var(--border-glass);
+    box-shadow: none;
 }
 
 .admin-tab {
     flex: 1;
     padding: 15px 20px;
-    background: white;
+    background: transparent;
     border: none;
     font-size: 16px;
     font-weight: 600;
-    color: var(--gray-600);
+    color: var(--text-muted);
     cursor: pointer;
     border-bottom: 3px solid transparent;
     transition: all 0.3s;
@@ -33,363 +40,34 @@
 }
 
 .admin-tab:hover {
-    background: var(--gray-50);
+    color: var(--text-light);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .admin-tab.active {
     color: var(--orange);
     border-bottom-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05);
+    background: rgba(239, 128, 0, 0.1);
 }
 
+/* Conteneurs d'onglets */
 .tab-content {
     display: none;
+    animation: fadeIn 0.3s ease;
 }
 
 .tab-content.active {
     display: block;
-    animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Mobile adaptations */
-@media (max-width: 768px) {
-    .admin-tabs {
-        flex-direction: column;
-    }
-
-    .admin-tab {
-        border-bottom: none;
-        border-left: 3px solid transparent;
-    }
-
-    .admin-tab.active {
-        border-bottom: none;
-        border-left-color: var(--orange);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ========================================
-   STYLES D'ASSIGNATION
+   2. CARTES KPI (Statistiques)
    ======================================== */
-
-.assignment-section {
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.assignment-body {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-
-.assignment-body select {
-    flex: 1;
-}
-
-.assignment-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* Badge pour admin assigné */
-.badge-assigned {
-    background: var(--gray-200);
-    color: var(--gray-700);
-    font-weight: 600;
-}
-
-/* ========================================
-   STYLES POUR L'ONGLET MODÈLES
-   ======================================== */
-
-.canned-layout {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 30px;
-}
-
-.canned-form {
-    background: var(--gray-50);
-    padding: 25px;
-    border-radius: 12px;
-    border: 2px solid var(--gray-200);
-}
-
-.canned-form h3,
-.canned-list h3 {
-    color: var(--gray-dark);
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.canned-list-container {
-    max-height: 600px;
-    overflow-y: auto;
-}
-
-.canned-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    transition: all 0.3s;
-}
-
-.canned-item:hover {
-    border-color: var(--orange);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.canned-item-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.canned-item-info strong {
-    color: var(--gray-900);
-    font-size: 16px;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.canned-item-info p {
-    color: var(--gray-600);
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Responsive pour l'onglet modèles */
-@media (max-width: 900px) {
-    .canned-layout {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ========================================
-   STYLES POUR L'ONGLET PARAMÈTRES
-   ======================================== */
-
-.settings-layout {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 30px;
-}
-
-.settings-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.settings-sub-tab {
-    width: 100%;
-    padding: 15px 20px;
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gray-700);
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.settings-sub-tab:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-}
-
-.settings-sub-tab.active {
-    background: rgba(239, 128, 0, 0.05);
-    border-color: var(--orange);
-    color: var(--orange);
-}
-
-.settings-content {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    border: 2px solid var(--gray-200);
-}
-
-@media (max-width: 900px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .settings-menu {
-        flex-direction: row;
-        overflow-x: auto;
-    }
-
-    .settings-sub-tab {
-        min-width: 200px;
-    }
-
-    .settings-content {
-        padding: 20px;
-    }
-}
-
-/* ========================================
-   STYLES POUR LE NOUVEAU DRAG-DROP
-   ======================================== */
-
-.custom-drop-zone {
-    border: 2px dashed var(--gray-300);
-    /* Bordure en pointillés gris */
-    border-radius: 12px;
-    padding: 30px;
-    /* Moins de padding */
-    text-align: center;
-    background: white;
-    /* Fond blanc */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    /* Ombre légère */
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.custom-drop-zone:hover {
-    border-color: var(--orange);
-    /* Bordure orange au survol */
-    box-shadow: 0 8px 20px rgba(239, 128, 0, 0.2);
-    /* Ombre orange */
-}
-
-/* Style quand on déplace un fichier par-dessus */
-.custom-drop-zone.drag-over {
-    border-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05);
-    /* Fond orange très léger */
-    transform: scale(1.02);
-    box-shadow: 0 8px 24px rgba(239, 128, 0, 0.2);
-}
-
-.custom-drop-zone-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-    color: var(--orange);
-    /* Icône orange (Descamps) */
-    transition: transform 0.3s;
-}
-
-.custom-drop-zone:hover .custom-drop-zone-icon {
-    transform: scale(1.1) translateY(-5px);
-}
-
-.custom-drop-zone-text {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gray-900);
-    margin-bottom: 5px;
-}
-
-.custom-drop-zone-subtext {
-    font-size: 13px;
-    color: var(--gray-600);
-}
-
-.custom-drop-zone-info {
-    margin-top: 15px;
-    font-size: 12px;
-    color: var(--gray-600);
-}
-
-/* Styles pour la grille de graphiques */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
-}
-
-.chart-container {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* ========================================
-   DASHBOARD STATISTIQUES AVANCÉES
-   ======================================== */
-
-/* Header du dashboard */
-.stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.stats-header h2 {
-    color: var(--gray-900);
-    font-size: 28px;
-    margin: 0;
-}
-
-.stats-filters {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.period-btn {
-    padding: 10px 20px;
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--gray-700);
-    transition: all 0.3s;
-}
-
-.period-btn:hover {
-    border-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05);
-}
-
-.period-btn.active {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
-}
-
-/* Grille KPI */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -398,414 +76,218 @@
 }
 
 .kpi-card {
-    background: linear-gradient(135deg, var(--gray-dark) 0%, var(--gray-medium) 100%);
-    color: white;
+    /* Fond semi-transparent style "Glassmorphism" */
+    background: var(--bg-dark-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: var(--border-glass);
+    color: var(--text-light);
     padding: 25px;
     border-radius: 16px;
     display: flex;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
-    cursor: pointer;
-}
-
-.kpi-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    transition: all 0.5s;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s, border-color 0.3s;
 }
 
 .kpi-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    border-color: var(--orange);
 }
 
-.kpi-card:hover::before {
-    top: -25%;
-    right: -25%;
-}
-
-.kpi-icon {
-    font-size: 48px;
-    position: relative;
-    z-index: 1;
-}
-
-.kpi-content {
-    flex: 1;
-    position: relative;
-    z-index: 1;
-}
-
-.kpi-value {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 5px;
-}
-
-.kpi-label {
+.kpi-card h4 {
+    margin: 0 0 10px 0;
     font-size: 14px;
-    opacity: 0.9;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.kpi-variation {
-    margin-top: 8px;
-    font-size: 13px;
+    color: var(--text-muted);
     font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
 }
 
-/* Grille graphiques */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.chart-card {
-    background: white;
-    border-radius: 16px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--gray-200);
-    transition: all 0.3s;
-}
-
-.chart-card:hover {
-    box-shadow: 0 8px 24px rgba(239, 128, 0, 0.15);
-    border-color: var(--orange);
-}
-
-.chart-header {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--gray-100);
-}
-
-.chart-header h3 {
-    color: var(--gray-900);
-    font-size: 18px;
+.kpi-card p {
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Section performance admins */
-.performance-section {
-    margin-bottom: 30px;
-}
-
-.performance-section h3 {
-    color: var(--gray-900);
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.admin-performance-card {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    border: 2px solid var(--gray-200);
-    transition: all 0.3s;
-}
-
-.admin-performance-card:hover {
-    border-color: var(--orange);
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
-}
-
-.admin-rank {
     font-size: 32px;
     font-weight: 700;
-    color: var(--gray-400);
-    min-width: 60px;
-    text-align: center;
+    color: var(--text-light);
 }
 
-.admin-info {
-    flex: 1;
-}
-
-.admin-name {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--gray-900);
-    margin-bottom: 8px;
-}
-
-.admin-stats {
+/* ========================================
+   3. BARRE DE FILTRES & FORMULAIRES
+   ======================================== */
+.filters-bar {
     display: flex;
     gap: 15px;
-    font-size: 13px;
-    color: var(--gray-600);
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
-.admin-progress {
+/* Styles des inputs pour qu'ils ne soient pas blanc éclatant */
+.filters-bar input,
+.filters-bar select,
+#adminSearchInput,
+#userSearchInput {
+    padding: 12px 15px;
+    background: var(--bg-dark-input);
+    border: var(--border-glass);
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 14px;
+    outline: none;
     min-width: 200px;
 }
 
-.progress-bar {
-    height: 12px;
-    background: var(--gray-200);
-    border-radius: 10px;
+.filters-bar input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.filters-bar input:focus,
+.filters-bar select:focus {
+    border-color: var(--orange);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.filters-bar select option {
+    background: #333; /* Fond sombre pour les options du menu déroulant */
+    color: white;
+}
+
+/* ========================================
+   4. TABLEAUX DE DONNÉES
+   ======================================== */
+.table-container {
+    background: var(--bg-dark-glass);
+    border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 5px;
+    border: var(--border-glass);
+    margin-bottom: 20px;
 }
 
-.progress-fill {
-    height: 100%;
-    background: var(--orange);
-    transition: width 1s ease;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-light);
 }
 
-.progress-label {
+thead {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    border-bottom: var(--border-glass);
+}
+
+td {
+    padding: 15px;
+    border-bottom: var(--border-glass);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Badges dans le tableau */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+/* Surcharge des couleurs de badges pour le mode sombre si nécessaire */
+.badge-open { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+.badge-in-progress { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+.badge-closed { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+.badge-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+
+/* ========================================
+   5. BOUTONS & PAGINATION
+   ======================================== */
+.btn-small {
+    padding: 6px 12px;
     font-size: 12px;
-    color: var(--gray-600);
-    font-weight: 600;
 }
 
-/* Grille bottom (top catégories + non assignés) */
-.bottom-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 25px;
-    margin-top: 30px;
-}
-
-/* Top catégories */
-.top-item {
+.pagination {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: var(--gray-50);
-    border-radius: 10px;
-    margin-bottom: 12px;
-    transition: all 0.3s;
-}
-
-.top-item:hover {
-    background: rgba(239, 128, 0, 0.05);
-    transform: translateX(5px);
-}
-
-.top-rank {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--orange);
-    min-width: 40px;
-    text-align: center;
-}
-
-.top-info {
-    flex: 1;
-}
-
-.top-name {
-    font-weight: 600;
-    color: var(--gray-900);
-    margin-bottom: 8px;
-}
-
-.top-bar {
-    height: 8px;
-    background: var(--gray-200);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.top-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--orange), #D67200);
-    border-radius: 10px;
-    transition: width 1s ease;
-}
-
-.top-count {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--gray-700);
-}
-
-/* Tickets non assignés */
-.unassigned-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: var(--gray-50);
-    border-radius: 10px;
-    margin-bottom: 12px;
-    border-left: 4px solid var(--orange);
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.unassigned-item:hover {
-    background: rgba(239, 128, 0, 0.05);
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.1);
-}
-
-.unassigned-id {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--orange);
-}
-
-.unassigned-info {
-    flex: 1;
-}
-
-.unassigned-subject {
-    font-weight: 600;
-    color: var(--gray-900);
-    margin-bottom: 5px;
-}
-
-.unassigned-meta {
-    display: flex;
+    justify-content: center;
     gap: 10px;
-    align-items: center;
-    font-size: 12px;
-    color: var(--gray-600);
+    margin-top: 20px;
+    padding-bottom: 40px;
 }
 
-.empty-alert {
-    text-align: center;
-    padding: 40px;
-    color: var(--success);
-    font-weight: 600;
-    font-size: 16px;
+.pagination-btn {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-light);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.pagination-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
 }
 
-.kpi-card,
-.chart-card,
-.admin-performance-card,
-.top-item,
-.unassigned-item {
-    animation: fadeInUp 0.5s ease forwards;
+.pagination-btn.active {
+    background: var(--orange);
+    color: white;
+    font-weight: bold;
 }
 
-.kpi-card:nth-child(1) {
-    animation-delay: 0.05s;
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
-.kpi-card:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.kpi-card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.kpi-card:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-.kpi-card:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.kpi-card:nth-child(6) {
-    animation-delay: 0.3s;
-}
-
-.kpi-card:nth-child(7) {
-    animation-delay: 0.35s;
-}
-
-.kpi-card:nth-child(8) {
-    animation-delay: 0.4s;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
+/* ========================================
+   6. RESPONSIVE (Mobiles)
+   ======================================== */
 @media (max-width: 768px) {
-    .stats-header {
+    .admin-tabs {
         flex-direction: column;
-        align-items: flex-start;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+    }
+    
+    .admin-tab {
+        border-bottom: none;
+        border-left: 3px solid transparent;
+        justify-content: flex-start;
+        padding: 12px 15px;
     }
 
-    .kpi-grid {
-        grid-template-columns: 1fr;
+    .admin-tab.active {
+        border-bottom: none;
+        border-left-color: var(--orange);
+        background: rgba(255, 255, 255, 0.05);
     }
-
-    .kpi-card {
-        padding: 20px;
-    }
-
-    .kpi-value {
-        font-size: 24px;
-    }
-
-    .admin-performance-card {
+    
+    .filters-bar {
         flex-direction: column;
-        align-items: flex-start;
     }
-
-    .admin-progress {
+    
+    .filters-bar input, .filters-bar select {
         width: 100%;
     }
-
-    .bottom-grid {
-        grid-template-columns: 1fr;
+    
+    /* Tableau responsive (scroll horizontal) */
+    .table-container {
+        overflow-x: auto;
     }
-
-    .period-btn {
-        font-size: 12px;
-        padding: 8px 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .stats-filters {
-        width: 100%;
-    }
-
-    .period-btn {
-        flex: 1;
-    }
-
-    .admin-stats {
-        flex-direction: column;
-        gap: 5px;
+    
+    table {
+        min-width: 600px; /* Force le scroll si trop petit */
     }
 }
