@@ -6,9 +6,104 @@
     --text-light: #f3f4f6;
     --text-muted: #9ca3af;
     /* Effet verre pour le fond sombre */
-    --bg-dark-glass: rgba(30, 30, 30, 0.6); 
+    --bg-dark-glass: rgba(30, 30, 30, 0.6);
     --bg-dark-input: rgba(0, 0, 0, 0.3);
     --border-glass: 1px solid rgba(255, 255, 255, 0.1);
+    --header-height: 70px;
+}
+
+body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: var(--text-light);
+    font-family: 'Source Sans Pro', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* ========================================
+   LAYOUT GLOBAL
+   ======================================== */
+.admin-grid-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: var(--bg-dark-glass);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: var(--border-glass);
+    margin-bottom: 20px;
+    height: var(--header-height);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.header-left .logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-left .logo::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 24px;
+    background: var(--orange);
+    border-radius: 2px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.admin-profile strong {
+    color: white;
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+.admin-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: var(--bg-dark-glass);
+    padding: 10px;
+    border-radius: 12px;
+    border: var(--border-glass);
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+.admin-main {
+    flex: 1;
+    animation: fadeIn 0.5s ease;
 }
 
 /* ========================================
@@ -16,7 +111,8 @@
    ======================================== */
 .admin-tabs {
     display: flex;
-    background: transparent; /* Rendre transparent pour voir le fond gris */
+    background: transparent;
+    /* Rendre transparent pour voir le fond gris */
     margin-bottom: 30px;
     border-bottom: var(--border-glass);
     box-shadow: none;
@@ -61,8 +157,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ========================================
@@ -98,13 +201,13 @@
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
     transition: all 0.5s;
 }
 
 .kpi-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
 .kpi-card:hover::before {
@@ -177,6 +280,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -187,21 +291,32 @@
     animation: fadeInUp 0.5s ease forwards;
 }
 
-.kpi-card:nth-child(1) { animation-delay: 0.05s; }
-.kpi-card:nth-child(2) { animation-delay: 0.1s; }
-.kpi-card:nth-child(3) { animation-delay: 0.15s; }
-.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+.kpi-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.kpi-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.kpi-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.kpi-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
     .kpi-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .kpi-card {
         padding: 20px;
     }
-    
+
     .kpi-value {
         font-size: 24px;
     }
@@ -213,6 +328,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -223,21 +339,32 @@
     animation: fadeInUp 0.5s ease forwards;
 }
 
-.kpi-card:nth-child(1) { animation-delay: 0.05s; }
-.kpi-card:nth-child(2) { animation-delay: 0.1s; }
-.kpi-card:nth-child(3) { animation-delay: 0.15s; }
-.kpi-card:nth-child(4) { animation-delay: 0.2s; }
+.kpi-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.kpi-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.kpi-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.kpi-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
     .kpi-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .kpi-card {
         padding: 20px;
     }
-    
+
     .kpi-value {
         font-size: 24px;
     }
@@ -256,8 +383,8 @@
 /* Styles des inputs pour qu'ils ne soient pas blanc éclatant */
 .filters-bar input,
 .filters-bar select,
-#adminSearchInput,
-#userSearchInput {
+.filters-bar #adminSearchInput,
+.filters-bar #userSearchInput {
     padding: 12px 15px;
     background: var(--bg-dark-input);
     border: var(--border-glass);
@@ -279,7 +406,8 @@
 }
 
 .filters-bar select option {
-    background: #333; /* Fond sombre pour les options du menu déroulant */
+    background: #333;
+    /* Fond sombre pour les options du menu déroulant */
     color: white;
 }
 
@@ -337,11 +465,27 @@ tr:hover td {
     font-weight: bold;
     text-transform: uppercase;
 }
+
 /* Surcharge des couleurs de badges pour le mode sombre si nécessaire */
-.badge-open { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-.badge-in-progress { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-.badge-closed { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
-.badge-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.badge-open {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.badge-in-progress {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+
+.badge-closed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.badge-high {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
 
 /* ========================================
    5. BOUTONS & PAGINATION
@@ -390,10 +534,10 @@ tr:hover td {
 @media (max-width: 768px) {
     .admin-tabs {
         flex-direction: column;
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
         border-radius: 8px;
     }
-    
+
     .admin-tab {
         border-bottom: none;
         border-left: 3px solid transparent;
@@ -406,21 +550,23 @@ tr:hover td {
         border-left-color: var(--orange);
         background: rgba(255, 255, 255, 0.05);
     }
-    
+
     .filters-bar {
         flex-direction: column;
     }
-    
-    .filters-bar input, .filters-bar select {
+
+    .filters-bar input,
+    .filters-bar select {
         width: 100%;
     }
-    
+
     /* Tableau responsive (scroll horizontal) */
     .table-container {
         overflow-x: auto;
     }
-    
+
     table {
-        min-width: 600px; /* Force le scroll si trop petit */
+        min-width: 600px;
+        /* Force le scroll si trop petit */
     }
 }
