@@ -12,7 +12,7 @@
 // ⭐ SOLUTION : Toute la logique PHP AVANT le HTML
 define('ROOT_PATH', __DIR__);
 require_once 'config.php';
-session_name('admin_session');
+// session_name('admin_session'); // REMOVED: Unified in config.php
 initialize_session();
 
 // ⭐ AMÉLIORATION : Si l'admin est déjà connecté, le rediriger vers admin.php

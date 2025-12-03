@@ -35,6 +35,7 @@ define('APP_URL_BASE', $_ENV['APP_URL_BASE'] ?? 'http://localhost/support_ticket
 define('LOGIN_ATTEMPT_WINDOW_MINUTES', 15);
 define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOGIN_LOCKOUT_TIME_MINUTES', 15);
+define('SESSION_NAME', 'support_ticket_session');
 
 class Database {
     private static $instance = null;
@@ -252,6 +253,7 @@ function initialize_session() {
         ini_set('session.use_only_cookies', 1);
         ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) ? 1 : 0);
         
+        session_name(SESSION_NAME);
         session_start();
     }
     

@@ -15,7 +15,7 @@
  */
 define('ROOT_PATH', __DIR__);
 require_once 'config.php';
-session_name('user_session');
+// session_name('user_session'); // REMOVED: Unified in config.php
 initialize_session();
 setSecurityHeaders();
 $isUserLoggedIn = isset($_SESSION['user_id']);

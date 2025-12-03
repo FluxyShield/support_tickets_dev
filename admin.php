@@ -8,7 +8,8 @@ define('ROOT_PATH', __DIR__);
 require_once 'config.php';
 
 // Configuration de la session admin
-session_name('admin_session');
+// Configuration de la session admin
+// session_name('admin_session'); // REMOVED: Unified in config.php
 initialize_session();
 
 $isAdminLoggedIn = isset($_SESSION['admin_id']);
