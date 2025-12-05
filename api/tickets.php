@@ -152,10 +152,13 @@ function ticket_list() {
     // --- FIN DE LA CORRECTION N+1 ---
 
     $user_info = null;
-    if (!$is_admin) {
+    // Return user info if logged in as user (even if also admin)
+    if (isset($_SESSION['user_id'])) {
         $user_info = [
+            'id' => $_SESSION['user_id'],
             'firstname' => $_SESSION['firstname'],
-            'lastname' => $_SESSION['lastname']
+            'lastname' => $_SESSION['lastname'],
+            'email' => $_SESSION['email']
         ];
     }
 
