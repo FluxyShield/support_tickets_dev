@@ -144,7 +144,7 @@ session_write_close();
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
-                    <input type="password" id="loginPassword" required>
+                    <input type="password" id="loginPassword" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%;">Se connecter</button>
             </form>
@@ -272,7 +272,6 @@ session_write_close();
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="js/drag-drop-upload.js"></script>
     <script src="js/file-viewer-system.js"></script>
     <script>
