@@ -205,10 +205,10 @@ if (!$isAdminLoggedIn) {
         <main class="admin-main">
             <div id="ticketsTab" class="tab-content active">
                 <div class="kpi-grid">
-                    <div class="kpi-card"><h4>Total</h4><p id="totalTickets">...</p></div>
-                    <div class="kpi-card"><h4>Ouverts</h4><p id="openTickets">...</p></div>
-                    <div class="kpi-card"><h4>En cours</h4><p id="inProgressTickets">...</p></div>
-                    <div class="kpi-card"><h4>Fermés</h4><p id="closedTickets">...</p></div>
+                    <div class="kpi-card total"><h4>Total</h4><p id="totalTickets">...</p></div>
+                    <div class="kpi-card open"><h4>Ouverts</h4><p id="openTickets">...</p></div>
+                    <div class="kpi-card in-progress"><h4>En cours</h4><p id="inProgressTickets">...</p></div>
+                    <div class="kpi-card closed"><h4>Fermés</h4><p id="closedTickets">...</p></div>
                 </div>
 
                 <div class="filters-bar">
@@ -255,73 +255,45 @@ if (!$isAdminLoggedIn) {
                 </div>
 
             <div id="settingsTab" class="tab-content">
-                <div class="settings-header-title">
-                    ⚙️ Paramètres
-                </div>
-
-                <div class="settings-main-card">
-                    <!-- Sidebar Navigation -->
-                    <div class="settings-sidebar">
-                        <button class="sidebar-btn active" onclick="switchSettingsSection('admin')">
-                            👥 Gestion des Admins
-                        </button>
-                        <button class="sidebar-btn" onclick="switchSettingsSection('responses')">
-                            💬 Modèles de réponse
-                        </button>
-                        <button class="sidebar-btn" onclick="switchSettingsSection('general')">
-                            ⚙️ Général
-                        </button>
+                <div class="settings-container">
+                    <!-- Section Gestion des Utilisateurs -->
+                    <div class="settings-section">
+                        <h3>👥 Gestion des Utilisateurs</h3>
+                        <div class="filters-bar">
+                            <input type="text" id="userSearchInput" onkeyup="handleUserSearch(event)" placeholder="Rechercher par ID...">
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Rôle</th>
+                                        <th>Inscrit le</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="usersPagination" class="pagination"></div>
                     </div>
 
-                    <!-- Content Area -->
-                    <div class="settings-content-area">
-                        <!-- Section: Gestion des Administrateurs -->
-                        <div id="adminSection" class="settings-panel active">
-                            <h3>Gestion des Administrateurs</h3>
-                            
-                            <div class="admin-management-grid">
-                                <!-- Inviter un nouvel admin -->
-                                <div class="admin-sub-card invite-card">
-                                    <h4>Inviter un nouvel admin</h4>
-                                    <p class="helper-text">L'utilisateur recevra un email pour finaliser la création de son compte.</p>
-                                    <input type="email" class="input-settings" id="inviteAdminEmail" placeholder="nouvel.admin@email.com">
-                                    <button class="btn-block-orange" onclick="sendAdminInvite()">Envoyer l'invitation</button>
-                                </div>
-
-                                <!-- Admins existants -->
-                                <div class="admin-sub-card">
-                                    <h4>Admins existants</h4>
-                                    <div id="adminsList">
-                                        <div class="admin-list-item">
-                                            <strong>Super Admin</strong>
-                                            <button class="btn btn-danger btn-small">🗑️ Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
+                    <!-- Autres paramètres (Placeholders) -->
+                    <div class="settings-section">
+                        <h3>⚙️ Configuration Générale</h3>
+                        <div class="settings-grid">
+                            <div class="settings-card">
+                                <h4>Notifications</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">Gérer les préférences de notification par email.</p>
+                                <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Configurer</button>
                             </div>
-                        </div>
-
-                        <!-- Section: Modèles de réponse -->
-                        <div id="responsesSection" class="settings-panel" style="display: none;">
-                            <h3>Modèles de réponse</h3>
-                            <p style="color: var(--text-muted);">Créez et gérez des modèles de réponse pour répondre plus rapidement aux tickets.</p>
-                            <button class="btn btn-primary" style="margin-top: 20px;">+ Nouveau modèle</button>
-                        </div>
-
-                        <!-- Section: Configuration Générale -->
-                        <div id="generalSection" class="settings-panel" style="display: none;">
-                            <h3>Configuration Générale</h3>
-                            <div class="settings-grid">
-                                <div class="settings-card">
-                                    <h4>Notifications</h4>
-                                    <p style="color: var(--text-muted); font-size: 14px;">Gérer les préférences de notification par email.</p>
-                                    <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Configurer</button>
-                                </div>
-                                <div class="settings-card">
-                                    <h4>Sécurité</h4>
-                                    <p style="color: var(--text-muted); font-size: 14px;">Modifier le mot de passe administrateur et les accès.</p>
-                                    <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Gérer</button>
-                                </div>
+                            <div class="settings-card">
+                                <h4>Sécurité</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">Modifier le mot de passe administrateur et les accès.</p>
+                                <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Gérer</button>
                             </div>
                         </div>
                     </div>

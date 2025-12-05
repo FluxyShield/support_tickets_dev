@@ -165,8 +165,7 @@ function switchTab(tab) {
     } else if (tab === 'settings') {
         document.querySelectorAll('.admin-tab')[2].classList.add('active');
         document.getElementById('settingsTab').classList.add('active');
-        // Load admins list when switching to settings
-        renderAdminsList();
+        renderSettingsTab('admins');
     }
 }
 
@@ -187,102 +186,6 @@ function switchSettingsTab(subTab) {
         renderGeneralSettings();
     }
 }
-
-// New function for sidebar-based settings navigation
-function switchSettingsSection(section) {
-    // Remove active class from all sidebar buttons
-    document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
-
-    // Hide all settings panels
-    document.querySelectorAll('.settings-panel').forEach(panel => panel.style.display = 'none');
-
-    // Show selected section
-    if (section === 'admin') {
-        document.querySelector('.sidebar-btn[onclick*="admin"]').classList.add('active');
-        document.getElementById('adminSection').style.display = 'block';
-        renderAdminsList();
-    } else if (section === 'responses') {
-        document.querySelector('.sidebar-btn[onclick*="responses"]').classList.add('active');
-        document.getElementById('responsesSection').style.display = 'block';
-    } else if (section === 'general') {
-        document.querySelector('.sidebar-btn[onclick*="general"]').classList.add('active');
-        document.getElementById('generalSection').style.display = 'block';
-    }
-}
-
-// Function to render admins list
-function renderAdminsList() {
-    const adminsList = document.getElementById('adminsList');
-    if (!adminsList || !window.adminsList || window.adminsList.length === 0) {
-        return;
-    }
-
-    adminsList.innerHTML = window.adminsList.map(admin => `
-        <div class="admin-list-item">
-            <strong>${escapeHTML(admin.firstname)} ${escapeHTML(admin.lastname)}</strong>
-            ${admin.is_current ? '<span class="badge-you">Vous</span>' : ''}
-            ${!admin.is_current ? `<button class="btn btn-danger btn-small" onclick="deleteAdmin(${admin.id})">🗑️ Supprimer</button>` : ''}
-        </div>
-    `).join('');
-}
-
-// Function to send admin invite
-async function sendAdminInvite() {
-    const emailInput = document.getElementById('inviteAdminEmail');
-    const email = emailInput.value.trim();
-
-    if (!email) {
-        alert('Veuillez entrer une adresse email');
-        return;
-    }
-
-    try {
-        const res = await apiFetch('api.php?action=invite_admin', {
-            method: 'POST',
-            body: { email }
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            alert('Invitation envoyée avec succès !');
-            emailInput.value = '';
-            await loadAdmins();
-            renderAdminsList();
-        } else {
-            alert('Erreur : ' + data.message);
-        }
-    } catch (error) {
-        console.error('Erreur lors de l\'envoi de l\'invitation:', error);
-        alert('Erreur de connexion au serveur');
-    }
-}
-
-// Function to delete admin
-async function deleteAdmin(adminId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet administrateur ?')) {
-        return;
-    }
-
-    try {
-        const res = await apiFetch('api.php?action=delete_admin', {
-            method: 'POST',
-            body: { admin_id: adminId }
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            alert('Administrateur supprimé avec succès');
-            await loadAdmins();
-            renderAdminsList();
-        } else {
-            alert('Erreur : ' + data.message);
-        }
-    } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-        alert('Erreur de connexion au serveur');
-    }
-}
-
 
 async function loadInitialData() {
     await loadAdmins();
@@ -315,7 +218,6 @@ async function loadAdmins() {
         const res = await apiFetch('api.php?action=get_admins');
         const data = await res.json();
         if (data.success) {
-            window.adminsList = data.admins;
             adminsList = data.admins;
         } else {
             console.error('Erreur chargement admins:', data.message);
