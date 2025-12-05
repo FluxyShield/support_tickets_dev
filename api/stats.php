@@ -139,11 +139,11 @@ function getCategoryDistribution($db) {
  * 🎯 Distribution par priorité
  */
 function getPriorityDistribution($db) {
-    $result = $db->query("SELECT priority_encrypted, COUNT(*) as count FROM tickets GROUP BY priority_encrypted");
+    $result = $db->query("SELECT priority, COUNT(*) as count FROM tickets GROUP BY priority");
     
     $priorities = [];
     while ($row = $result->fetch_assoc()) {
-        $priority = decrypt($row['priority_encrypted']);
+        $priority = $row['priority'];
         $priorities[] = [
             'name' => $priority,
             'count' => (int)$row['count']
@@ -287,7 +287,7 @@ function getUnassignedTickets($db) {
     $query = "SELECT 
                 id,
                 subject_encrypted,
-                priority_encrypted,
+                priority,
                 created_at
               FROM tickets
               WHERE assigned_to IS NULL AND status != 'Fermé'
@@ -301,7 +301,7 @@ function getUnassignedTickets($db) {
         $unassigned[] = [
             'id' => (int)$row['id'],
             'subject' => decrypt($row['subject_encrypted']),
-            'priority' => decrypt($row['priority_encrypted']),
+            'priority' => $row['priority'],
             'waiting_time' => round((time() - strtotime($row['created_at'])) / 3600, 1) // heures
         ];
     }
@@ -485,13 +485,13 @@ function getAgentLoad($db) {
     
     // Calculer la charge
     // Priorité Haute = 3 pts, Moyenne = 2 pts, Basse = 1 pt
-    $query = "SELECT assigned_to, priority_encrypted FROM tickets WHERE status IN ('Ouvert', 'En cours') AND assigned_to IS NOT NULL";
+    $query = "SELECT assigned_to, priority FROM tickets WHERE status IN ('Ouvert', 'En cours') AND assigned_to IS NOT NULL";
     $result = $db->query($query);
     
     while ($row = $result->fetch_assoc()) {
         $adminId = $row['assigned_to'];
         if (isset($admins[$adminId])) {
-            $priority = decrypt($row['priority_encrypted']);
+            $priority = $row['priority'];
             $points = ($priority === 'Haute') ? 3 : (($priority === 'Moyenne') ? 2 : 1);
             
             $admins[$adminId]['tickets_count']++;
