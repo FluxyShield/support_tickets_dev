@@ -140,7 +140,7 @@ session_write_close();
             <form onsubmit="login(event)">
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="loginEmail" required>
+                    <input type="email" id="loginEmail" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
