@@ -199,6 +199,29 @@ a:hover {
     font-size: 12px;
 }
 
+.edit-description-btn {
+    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.edit-description-btn:hover {
+    background: linear-gradient(135deg, #D67200 0%, #B85F00 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 128, 0, 0.3);
+}
+
+.edit-description-btn:active {
+    transform: scale(0.95);
+}
+
 .btn.loading {
     pointer-events: none;
     opacity: 0.7;
