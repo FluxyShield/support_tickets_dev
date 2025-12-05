@@ -49,7 +49,7 @@ $ticket = [
     'subject' => decrypt($ticket_raw['subject_encrypted']),
     'description' => decrypt($ticket_raw['description_encrypted']),
     'category' => decrypt($ticket_raw['category_encrypted']),
-    'priority' => decrypt($ticket_raw['priority_encrypted']),
+    'priority' => $ticket_raw['priority'], // Priority is not encrypted
     'status' => $ticket_raw['status'],
     'date' => date('d/m/Y', strtotime($ticket_raw['created_at'])),
 ];
