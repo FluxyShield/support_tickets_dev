@@ -343,6 +343,9 @@ session_write_close();
             const errorDiv = document.getElementById('loginErrorMsg');
             errorDiv.style.display = 'none';
 
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
             const res = await apiFetch('api.php?action=login', { method: 'POST', body: { email, password } });
             const data = await res.json();
 
