@@ -743,6 +743,440 @@ tr:hover td {
 }
 
 /* ========================================
+   STATISTIQUES PAGE
+   ======================================== */
+
+/* Stats Header & Filters */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.stats-header h2 {
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.stats-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.period-btn {
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.period-btn:hover {
+    background: #f3f4f6;
+    border-color: var(--orange);
+}
+
+.period-btn.active {
+    background: var(--orange);
+    color: white;
+    border-color: var(--orange);
+    box-shadow: 0 2px 8px rgba(239, 128, 0, 0.3);
+}
+
+/* Enhanced KPI Cards for Stats */
+.kpi-icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.kpi-content {
+    width: 100%;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 5px 0;
+}
+
+.kpi-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-variation {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.chart-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chart-header h3 {
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+/* Keyword Cloud */
+.keyword-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px;
+    min-height: 200px;
+    align-items: center;
+    justify-content: center;
+}
+
+.keyword-tag {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-radius: 20px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid var(--border-color);
+}
+
+.keyword-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.keyword-tag.high {
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--orange) 0%, #d67200 100%);
+    color: white;
+    border-color: var(--orange);
+}
+
+.keyword-tag.medium {
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-color: #f59e0b;
+}
+
+.keyword-tag.low {
+    font-size: 0.9rem;
+}
+
+/* Agent Load Display */
+.agent-load-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.agent-load-card:hover {
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.agent-load-gauge {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: white;
+    flex-shrink: 0;
+}
+
+.agent-load-info {
+    flex: 1;
+}
+
+.agent-load-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+
+.agent-load-details {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* Admin Performance */
+.performance-section {
+    margin-bottom: 30px;
+}
+
+.performance-section h3 {
+    margin-bottom: 20px;
+    color: var(--primary-dark);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.admin-performance-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s;
+}
+
+.admin-performance-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.admin-rank {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 60px;
+    text-align: center;
+}
+
+.admin-info {
+    flex: 1;
+}
+
+.admin-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+
+.admin-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.admin-stats span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.admin-progress {
+    min-width: 200px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.progress-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Top Categories & Unassigned Tickets */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.top-item:hover {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.top-rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 50px;
+    text-align: center;
+}
+
+.top-info {
+    flex: 1;
+}
+
+.top-name {
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+
+.top-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.top-bar-fill {
+    height: 100%;
+    background: linear-gradient(135deg, var(--orange) 0%, #d67200 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.top-count {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Unassigned Tickets */
+.unassigned-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #fef3c7;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #fbbf24;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.unassigned-item:hover {
+    background: #fde68a;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+    transform: translateX(5px);
+}
+
+.unassigned-id {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 60px;
+}
+
+.unassigned-info {
+    flex: 1;
+}
+
+.unassigned-subject {
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 5px;
+}
+
+.unassigned-meta {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.empty-alert {
+    text-align: center;
+    padding: 40px;
+    background: #d1fae5;
+    border-radius: 12px;
+    color: #065f46;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 1px solid #10b981;
+}
+
+/* Loading Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error Message */
+.error-message {
+    background: #fee2e2;
+    border-left: 4px solid #ef4444;
+    padding: 20px;
+    border-radius: 8px;
+    color: #991b1b;
+    font-weight: 600;
+    margin: 20px 0;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 @media (max-width: 900px) {
