@@ -72,123 +72,338 @@ $statusColors = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Détails du Ticket #<?php echo $ticket['id']; ?> - Support Descamps</title>
+    <title>Ticket #<?php echo $ticket['id']; ?> - Support Descamps</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: linear-gradient(135deg, #EDEDED 0%, #D1D1D1 100%);
             min-height: 100vh;
             padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
-        .details-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
-            width: 100%;
-            overflow: hidden;
-            animation: slideUp 0.5s ease;
+
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .details-header {
-            background: var(--gray-800);
+
+        /* Header with gradient */
+        .page-header {
+            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
             color: white;
             padding: 30px 40px;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .details-header h1 {
-            font-size: 24px;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-3px);
+        }
+
+        .header-title h1 {
             margin: 0;
+            font-size: 24px;
             font-weight: 600;
         }
-        .ticket-id-header {
-            font-family: monospace;
-            font-size: 16px;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 10px;
-            border-radius: 6px;
+
+        .header-title p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
         }
-        .details-body { padding: 40px; }
-        .info-grid {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 15px 20px;
-            align-items: start;
-        }
-        .info-label { font-weight: 600; color: var(--gray-700); }
-        .info-value { color: var(--gray-900); white-space: pre-wrap; word-break: break-word; }
-        .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-        .description-card {
-            background: var(--gray-50);
-            border-left: 4px solid var(--orange);
-            padding: 25px;
+
+        .ticket-id-badge {
+            background: linear-gradient(135deg, #EF8000 0%, #D97000 100%);
+            padding: 12px 24px;
             border-radius: 12px;
-            margin-top: 30px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
         }
-        .description-card h3 {
-            margin-top: 0; margin-bottom: 15px; font-size: 18px; color: var(--gray-800);
+
+        /* Main content card */
+        .content-card {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
         }
-        .action-buttons { margin-top: 40px; display: flex; gap: 15px; }
-        .btn { flex: 1; justify-content: center; }
-        .page-title { margin-bottom: 20px; font-weight: 700; color: var(--gray-800); }
+
+        /* Info cards grid */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #EF8000;
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6B7280;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-card-value {
+            font-size: 16px;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        /* Status badges */
+        .status-badges {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-icon {
+            font-size: 16px;
+        }
+
+        /* Description section */
+        .description-section {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border-left: 5px solid #EF8000;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(239, 128, 0, 0.1);
+        }
+
+        .description-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            color: #78350F;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .description-content {
+            color: #92400E;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7C7C7B 0%, #4A4A49 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 74, 73, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(74, 74, 73, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #EF8000 0%, #D97000 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 128, 0, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+            }
+
+            .info-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: 100%;
+            }
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-container {
+            animation: slideIn 0.5s ease;
+        }
     </style>
 </head>
 <body>
-    <div class="details-container">
-        <div class="details-header">
-            <h1>Détails du Ticket</h1>
-            <span class="ticket-id-header">#<?php echo $ticket['id']; ?></span>
+    <div class="page-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <button class="back-button" onclick="location.href='index.php'" title="Retour">
+                    ←
+                </button>
+                <div class="header-title">
+                    <h1>Détails du Ticket</h1>
+                    <p>Consultez les informations de votre demande</p>
+                </div>
+            </div>
+            <div class="ticket-id-badge">
+                #<?php echo $ticket['id']; ?>
+            </div>
         </div>
 
-        <div class="details-body">
-            
-            <div class="info-grid">
-                <div class="info-label">Sujet :</div>
-                <div class="info-value"><strong><?php echo htmlspecialchars($ticket['subject']); ?></strong></div>
-
-                <div class="info-label">Date de création :</div>
-                <div class="info-value"><?php echo htmlspecialchars($ticket['date']); ?></div>
-                
-                <div class="info-label">Catégorie :</div>
-                <div class="info-value"><?php echo htmlspecialchars($ticket['category']); ?></div>
-
-                <div class="info-label">Priorité :</div>
-                <div class="info-value">
-                    <span class="badge" style="background-color: <?php echo $priorityColors[$ticket['priority']]; ?>20; color: <?php echo $priorityColors[$ticket['priority']]; ?>;">
-                        <?php echo htmlspecialchars($ticket['priority']); ?>
-                    </span>
+        <!-- Main Content -->
+        <div class="content-card">
+            <!-- Info Cards -->
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-card-label">📋 Sujet</div>
+                    <div class="info-card-value"><?php echo htmlspecialchars($ticket['subject']); ?></div>
                 </div>
-
-                <div class="info-label">Statut :</div>
-                <div class="info-value">
-                    <span class="badge" style="background-color: <?php echo $statusColors[$ticket['status']]; ?>20; color: <?php echo $statusColors[$ticket['status']]; ?>;">
-                        <?php echo htmlspecialchars($ticket['status']); ?>
-                    </span>
+                <div class="info-card">
+                    <div class="info-card-label">📅 Date de création</div>
+                    <div class="info-card-value"><?php echo htmlspecialchars($ticket['date']); ?></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-label">📁 Catégorie</div>
+                    <div class="info-card-value"><?php echo htmlspecialchars($ticket['category']); ?></div>
                 </div>
             </div>
 
-            <div class="description-card">
-                <h3>Description de la demande</h3>
-                <div class="info-value">
+            <!-- Status Badges -->
+            <div class="status-badges">
+                <span class="badge" style="background-color: <?php echo $priorityColors[$ticket['priority']]; ?>20; color: <?php echo $priorityColors[$ticket['priority']]; ?>;">
+                    <span class="badge-icon">⚡</span>
+                    Priorité : <?php echo htmlspecialchars($ticket['priority']); ?>
+                </span>
+                <span class="badge" style="background-color: <?php echo $statusColors[$ticket['status']]; ?>20; color: <?php echo $statusColors[$ticket['status']]; ?>;">
+                    <span class="badge-icon">🔔</span>
+                    Statut : <?php echo htmlspecialchars($ticket['status']); ?>
+                </span>
+            </div>
+
+            <!-- Description -->
+            <div class="description-section">
+                <h3>
+                    <span>📝</span>
+                    Description de la demande
+                </h3>
+                <div class="description-content">
                     <?php echo nl2br(htmlspecialchars($ticket['description'])); ?>
                 </div>
             </div>
 
+            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="location.href='index.php'">
-                    Retour à la liste des tickets
+                    <span>←</span>
+                    Retour à la liste
                 </button>
-                <button class="btn btn-secondary" onclick="location.href='index.php#new-ticket-form'">
-                    Créer un nouveau ticket
+                <button class="btn btn-secondary" onclick="location.href='index.php'">
+                    <span>+</span>
+                    Nouveau ticket
                 </button>
             </div>
         </div>
     </div>
-    <!-- Le script JS a été supprimé car la logique est maintenant gérée côté serveur -->
 </body>
 </html>
