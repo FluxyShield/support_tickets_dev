@@ -369,6 +369,7 @@ session_write_close();
             if (data.success) {
                 tickets = data.tickets;
                 if (data.user) {
+                    currentUser = data.user; // Store user data
                     document.getElementById('welcomeMsg').textContent = `Bonjour ${escapeHTML(data.user.firstname)} ${escapeHTML(data.user.lastname)} !`;
                 }
                 renderTickets();
