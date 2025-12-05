@@ -565,10 +565,178 @@ function renderUnassignedTickets(data) {
 }
 
 /**
- * 📥 Export PDF (placeholder)
+ * 📥 Export PDF - Full Implementation
  */
-function exportDashboard() {
-    alert('🚧 Fonctionnalité en cours de développement...\n\nProchainement : Export PDF complet du dashboard !');
+async function exportDashboard() {
+    // Vérifier que les bibliothèques sont chargées
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        alert('❌ Erreur : Les bibliothèques PDF ne sont pas chargées. Veuillez rafraîchir la page.');
+        return;
+    }
+
+    const statsContainer = document.getElementById('statsTab');
+    if (!statsContainer || !statsData) {
+        alert('❌ Aucune donnée à exporter. Veuillez d\'abord charger les statistiques.');
+        return;
+    }
+
+    // Afficher un indicateur de chargement
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        color: white;
+    `;
+    loadingOverlay.innerHTML = `
+        <div style="width:60px;height:60px;border:6px solid #fff;border-top-color:#EF8000;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;"></div>
+        <h3 style="margin:0;font-size:1.5rem;">Génération du PDF en cours...</h3>
+        <p style="margin:10px 0 0 0;opacity:0.8;">Veuillez patienter quelques secondes</p>
+    `;
+    document.body.appendChild(loadingOverlay);
+
+    try {
+        // Attendre un peu pour que l'overlay s'affiche
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Capturer le contenu avec html2canvas
+        const canvas = await html2canvas(statsContainer, {
+            scale: 2, // Haute résolution
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#EDEDED',
+            windowWidth: statsContainer.scrollWidth,
+            windowHeight: statsContainer.scrollHeight
+        });
+
+        // Créer le PDF avec jsPDF
+        const { jsPDF } = jspdf;
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // Dimensions A4 en mm
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 10;
+        const contentWidth = pageWidth - (2 * margin);
+
+        // Ajouter un en-tête
+        pdf.setFontSize(18);
+        pdf.setTextColor(74, 74, 73); // var(--primary-dark)
+        pdf.text('📊 Rapport Statistiques - Support Ticketing', margin, 15);
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(102, 102, 102); // var(--text-muted)
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        pdf.text(`Généré le ${dateStr}`, margin, 22);
+        pdf.text(`Période : ${currentPeriod} jours`, margin, 27);
+
+        // Ligne de séparation
+        pdf.setDrawColor(239, 128, 0); // var(--orange)
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, 30, pageWidth - margin, 30);
+
+        // Calculer les dimensions de l'image pour qu'elle rentre dans la page
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Position de départ du contenu
+        let yPosition = 35;
+
+        // Si l'image est plus haute qu'une page, on la divise en plusieurs pages
+        if (imgHeight > (pageHeight - yPosition - margin)) {
+            // Image trop haute, on la divise
+            const imgData = canvas.toDataURL('image/png');
+            let heightLeft = imgHeight;
+            let position = yPosition;
+
+            // Première page
+            pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - position - margin);
+
+            // Pages suivantes
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight + margin;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                heightLeft -= (pageHeight - margin);
+            }
+        } else {
+            // L'image rentre sur une seule page
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+        }
+
+        // Ajouter un pied de page sur chaque page
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text(
+                `Page ${i} sur ${pageCount} - Support Ticketing System`,
+                pageWidth / 2,
+                pageHeight - 5,
+                { align: 'center' }
+            );
+        }
+
+        // Générer le nom du fichier avec date et heure
+        const filename = `Statistiques_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}.pdf`;
+
+        // Télécharger le PDF
+        pdf.save(filename);
+
+        // Retirer l'overlay de chargement
+        document.body.removeChild(loadingOverlay);
+
+        // Message de succès
+        const successMsg = document.createElement('div');
+        successMsg.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        `;
+        successMsg.textContent = '✅ PDF téléchargé avec succès !';
+        document.body.appendChild(successMsg);
+
+        setTimeout(() => {
+            successMsg.style.opacity = '0';
+            successMsg.style.transition = 'opacity 0.3s';
+            setTimeout(() => document.body.removeChild(successMsg), 300);
+        }, 3000);
+
+    } catch (error) {
+        console.error('Erreur lors de la génération du PDF:', error);
+        document.body.removeChild(loadingOverlay);
+        alert('❌ Erreur lors de la génération du PDF. Veuillez réessayer.\n\nDétails : ' + error.message);
+    }
 }
 
 // Export pour utilisation dans admin-script.js

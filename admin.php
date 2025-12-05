@@ -368,6 +368,8 @@ if (!$isAdminLoggedIn) {
     <div id="overlay" class="overlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/drag-drop-upload.js"></script>
     <script src="js/admin-stats.js"></script>
     <script src="js/file-viewer-system.js"></script>
