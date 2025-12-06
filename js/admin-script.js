@@ -741,92 +741,103 @@ async function viewTicket(id) {
             ${renderAssignmentUI(ticket)}
         </div>
     
-        <div style="margin-bottom:20px;margin-top:20px;border-top:1px solid var(--gray-200);padding-top:20px;">
-            <div style="display:flex;gap:10px;margin-bottom:15px;align-items:center;justify-content:space-between;">
-                <div>
-                    <span class="badge badge-${ticket.status === 'Ouvert' ? 'open' : ticket.status === 'En cours' ? 'in-progress' : 'closed'}">${ticket.status}</span>
-                    <span class="badge badge-${ticket.priority === 'Haute' ? 'high' : ticket.priority === 'Moyenne' ? 'medium' : 'low'}">${ticket.priority}</span>
-                </div>
-                ${ticket.review_id ? `<div class="user-rating-display" style="font-size:14px;">Note : ${'★'.repeat(ticket.review_rating)}${'☆'.repeat(5 - ticket.review_rating)}</div>` : ''}
+        <div class="ticket-info-card">
+            <div class="badge-container">
+                <span class="badge badge-${ticket.status === 'Ouvert' ? 'open' : ticket.status === 'En cours' ? 'in-progress' : 'closed'}">${escapeHTML(ticket.status)}</span>
+                <span class="badge badge-${ticket.priority === 'Haute' ? 'high' : ticket.priority === 'Moyenne' ? 'medium' : 'low'}">${escapeHTML(ticket.priority)}</span>
+                ${ticket.review_id ? `<span class="badge" style="background:#f59e0b;color:white;">⭐ ${ticket.review_rating}/5</span>` : ''}
             </div>
-            <h4>${escapeHTML(ticket.subject)}</h4>
-            <p style="color:var(--gray-600);margin:10px 0;"><strong>De:</strong> ${escapeHTML(ticket.name)} (${escapeHTML(ticket.email)})</p>
-            <p style="background:var(--gray-50);padding:15px;border-radius:8px;">${escapeHTML(ticket.description)}</p>
+            
+            <div class="ticket-title-display">
+                <h4>${escapeHTML(ticket.subject)}</h4>
+                <p class="ticket-meta-info"><strong>De:</strong> ${escapeHTML(ticket.name)} (${escapeHTML(ticket.email)})</p>
+            </div>
+            
+            <div class="ticket-description-box">
+                <p>${escapeHTML(ticket.description)}</p>
+            </div>
         </div>
 
         ${ticket.files && ticket.files.length > 0 ? `
-            <h4 style="margin-bottom:15px;">📎 Fichiers joints (${ticket.files.length})</h4>
-            <div class="file-gallery">
-                ${ticket.files.map((f, index) => {
+            <div class="files-section">
+                <h4>📎 Fichiers joints (${ticket.files.length})</h4>
+                <div class="file-gallery">
+                    ${ticket.files.map((f, index) => {
         const isImage = f.type.includes('image');
         const isPDF = f.type.includes('pdf');
         const icon = isPDF ? '📄' : '🖼️';
         const badge = isPDF ? 'PDF' : isImage ? 'IMG' : 'FILE';
         return `
-                    <div class="file-card">
-                        <div class="file-card-preview" onclick="fileViewerSystem.openFile(${index})">
-                            <span class="file-card-badge">${badge}</span>
-                            ${isImage ? `<img src="api.php?action=ticket_download_file&file_id=${f.id}&preview=1" alt="${f.name}">` : `<div class="file-icon">${icon}</div>`}
-                        </div>
-                        <div class="file-card-info">
-                            <div class="file-card-name" title="${escapeHTML(f.name)}">${escapeHTML(f.name)}</div>
-                            <div class="file-card-meta">
-                                ${(f.size / 1024).toFixed(2)} Ko
+                        <div class="file-card">
+                            <div class="file-card-preview" onclick="fileViewerSystem.openFile(${index})">
+                                <span class="file-card-badge">${badge}</span>
+                                ${isImage ? `<img src="api.php?action=ticket_download_file&file_id=${f.id}&preview=1" alt="${f.name}">` : `<div class="file-icon">${icon}</div>`}
                             </div>
-                            <div class="file-card-meta">
-                                ${escapeHTML(f.uploaded_by)} • ${escapeHTML(f.date)}
+                            <div class="file-card-info">
+                                <div class="file-card-name" title="${escapeHTML(f.name)}">${escapeHTML(f.name)}</div>
+                                <div class="file-card-meta">
+                                    ${(f.size / 1024).toFixed(2)} Ko
+                                </div>
+                                <div class="file-card-meta">
+                                    ${escapeHTML(f.uploaded_by)} • ${escapeHTML(f.date)}
+                                </div>
+                            </div>
+                            <div class="file-card-actions">
+                                <button class="file-card-btn view" onclick="fileViewerSystem.openFile(${index})">
+                                    👁️ Voir
+                                </button>
+                                <a href="api.php?action=ticket_download_file&file_id=${f.id}" class="file-card-btn download" download>
+                                    ⬇️
+                                </a>
+                                <button class="file-card-btn" style="background:var(--danger);color:white;" onclick="deleteFile(${f.id}, ${ticket.id})">
+                                    🗑️
+                                </button>
                             </div>
                         </div>
-                        <div class="file-card-actions">
-                            <button class="file-card-btn view" onclick="fileViewerSystem.openFile(${index})">
-                                👁️ Voir
-                            </button>
-                            <a href="api.php?action=ticket_download_file&file_id=${f.id}" class="file-card-btn download" download>
-                                ⬇️
-                            </a>
-                            <button class="file-card-btn" style="background:var(--danger);color:white;" onclick="deleteFile(${f.id}, ${ticket.id})">
-                                🗑️
-                            </button>
-                        </div>
-                    </div>
-                `;
+                    `;
     }).join('')}
+                </div>
             </div>
         ` : ''}
 
-        <h4 style="margin-bottom:15px;">Messages</h4>
-        <div id="messagesContainer">
-            ${ticket.messages.length === 0 ? '<p style="color:var(--gray-600);">Aucun message</p>' :
+        <div class="messages-section">
+            <h4>💬 Messages</h4>
+            <div id="messagesContainer">
+                ${ticket.messages.length === 0 ? '<p style="color:var(--gray-600);text-align:center;padding:20px;">Aucun message</p>' :
             ticket.messages.map(m => `
-                    <div class="message ${m.author_role === 'admin' ? 'message-admin' : (m.author_role === 'user' ? 'message-user' : 'message-system')}">
-                        <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
-                        <p style="margin-top:5px;">${escapeHTML(m.text)}</p>
-                    </div>
-                `).join('')
+                        <div class="message ${m.author_role === 'admin' ? 'message-admin' : (m.author_role === 'user' ? 'message-user' : 'message-system')}">
+                            <strong>${escapeHTML(m.author_name)}</strong> - ${new Date(m.date).toLocaleString('fr-FR')}
+                            <p>${escapeHTML(m.text)}</p>
+                        </div>
+                    `).join('')
         }
+            </div>
         </div>
 
-        <form onsubmit="sendMessage(event, ${ticket.id})" style="margin-top:20px;">
-            <div class="form-group">
-                <label for="cannedResponseSelect">Insérer un modèle de réponse :</label>
-                <select id="cannedResponseSelect" onchange="applyCannedResponse()" style="width:100%;padding:10px;border-radius:8px;border:2px solid var(--gray-200);font-size:14px;background:white;">
-                    <option value="">-- Choisir un modèle --</option>
-                    ${cannedResponses.map(r => `<option value="${r.id}">${r.title}</option>`).join('')}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <textarea id="adminMessage" placeholder="Répondre au ticket..." required></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>Joindre un fichier (optionnel)</label>
-                <input type="file" id="adminFile" accept=".png,.jpg,.jpeg,.pdf,.gif,.webp" class="file-input-hidden" multiple>
-                <div id="adminDropZone" class="custom-drop-zone"></div>
-                <div id="adminFilePreview"></div>
-            </div>
-            <button type="submit" class="btn btn-primary">Envoyer</button>
-        </form>
+        <div class="response-section">
+            <h4>✍️ Répondre au ticket</h4>
+            <form onsubmit="sendMessage(event, ${ticket.id})">
+                <div class="form-group">
+                    <label for="cannedResponseSelect">Insérer un modèle de réponse :</label>
+                    <select id="cannedResponseSelect" onchange="applyCannedResponse()">
+                        <option value="">-- Choisir un modèle --</option>
+                        ${cannedResponses.map(r => `<option value="${r.id}">${r.title}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <textarea id="adminMessage" placeholder="Répondre au ticket..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Joindre un fichier (optionnel)</label>
+                    <input type="file" id="adminFile" accept=".png,.jpg,.jpeg,.pdf,.gif,.webp" class="file-input-hidden" multiple>
+                    <div id="adminDropZone" class="custom-drop-zone"></div>
+                    <div id="adminFilePreview"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </form>
+        </div>
     `;
 
     document.getElementById('viewTicketModal').classList.add('active');
