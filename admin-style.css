@@ -743,91 +743,216 @@ tr:hover td {
 }
 
 /* ========================================
-   TICKET VIEW MODAL (ADMIN)
+   TICKET VIEW MODAL (ADMIN) - REDESIGN
    ======================================== */
 
-/* Modal Body Spacing */
+/* Modal Body */
 .modal-body {
-    padding: 30px;
+    padding: 0;
+    background: var(--gray-light);
 }
 
-/* Section Cards */
-.ticket-info-section,
-.messages-section,
-.response-section-wrapper {
-    background: white;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
+/* Modal Header Section */
+.modal-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 25px 30px;
+    border-bottom: none;
 }
 
-.ticket-info-section h4,
-.messages-section h4,
-.response-section-wrapper h4 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
+.modal-header h3 {
+    color: white;
+    margin: 0;
+    font-size: 20px;
     font-weight: 700;
-    color: var(--primary-dark);
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--border-color);
 }
 
-/* Assignment Section */
+/* Assignment Section - Top Card */
 .assignment-section {
-    background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-    padding: 20px;
+    background: white;
+    padding: 25px;
+    margin: 20px 30px;
     border-radius: 12px;
     border: 2px solid var(--border-color);
-    border-left: 4px solid var(--orange);
-    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .assignment-section h3 {
     margin: 0 0 15px 0;
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 700;
     color: var(--primary-dark);
     display: flex;
     align-items: center;
     gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-light);
 }
 
 .assignment-section select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 2px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     background: white;
+    transition: all 0.3s;
+}
+
+.assignment-section select:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
 }
 
 .assignment-section button {
     width: 100%;
 }
 
-/* Ticket Info Display */
-.ticket-info-display {
+/* Ticket Info Card */
+.ticket-info-card {
     background: white;
-    border: 2px solid var(--border-color);
+    padding: 25px;
+    margin: 0 30px 20px 30px;
     border-radius: 12px;
-    padding: 20px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Badges Container */
+.badge-container {
+    display: flex;
+    gap: 10px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-.ticket-info-display h4 {
-    margin: 0 0 15px 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main);
-}
-
-.ticket-info-display p {
-    background: var(--gray-50);
-    padding: 15px;
+/* Enhanced Badges */
+.badge {
+    padding: 8px 16px;
     border-radius: 8px;
-    margin: 10px 0 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-open {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.badge-in-progress {
+    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 128, 0, 0.3);
+}
+
+.badge-closed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-high {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.badge-medium {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.badge-low {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+/* Ticket Title */
+.ticket-title-display {
+    margin-bottom: 15px;
+}
+
+.ticket-title-display h4 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.ticket-meta-info {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.ticket-meta-info strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* Description Box */
+.ticket-description-box {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-left: 4px solid var(--orange);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+    box-shadow: 0 2px 8px rgba(239, 128, 0, 0.1);
+}
+
+.ticket-description-box p {
+    margin: 0;
+    color: #92400E;
     line-height: 1.6;
+    font-size: 14px;
+}
+
+/* Files Section */
+.files-section {
+    background: white;
+    padding: 25px;
+    margin: 0 30px 20px 30px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.files-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-light);
+}
+
+/* Messages Section */
+.messages-section {
+    background: white;
+    padding: 25px;
+    margin: 0 30px 20px 30px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.messages-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-light);
 }
 
 /* Messages Container */
@@ -835,29 +960,34 @@ tr:hover td {
     background: var(--gray-light);
     padding: 15px;
     border-radius: 8px;
-    max-height: 400px;
+    max-height: 350px;
     overflow-y: auto;
-    margin-top: 15px;
 }
 
-/* Message Styles */
+/* Message Bubbles */
 .message {
     background: white;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 12px;
     border-left: 4px solid var(--primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+}
+
+.message:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .message-admin {
     border-left-color: var(--orange);
-    background: rgba(239, 128, 0, 0.05);
+    background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
 }
 
 .message-user {
     border-left-color: #10b981;
-    background: rgba(16, 185, 129, 0.05);
+    background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
 }
 
 .message-system {
@@ -875,12 +1005,32 @@ tr:hover td {
 }
 
 .message p {
-    margin-top: 8px;
+    margin: 8px 0 0 0;
     color: var(--text-main);
     line-height: 1.6;
+    font-size: 14px;
 }
 
-/* Form Groups in Modal */
+/* Response Section */
+.response-section {
+    background: white;
+    padding: 25px;
+    margin: 0 30px 20px 30px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.response-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-light);
+}
+
+/* Form Groups */
 .modal-body .form-group {
     margin-bottom: 20px;
 }
@@ -894,15 +1044,15 @@ tr:hover td {
 }
 
 .modal-body .form-group select,
-.modal-body .form-group textarea,
-.modal-body .form-group input[type="file"] {
+.modal-body .form-group textarea {
     width: 100%;
     padding: 12px;
     border: 2px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     background: white;
+    transition: all 0.3s;
 }
 
 .modal-body .form-group textarea {
@@ -917,32 +1067,32 @@ tr:hover td {
     box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
 }
 
-/* File Gallery in Modal */
+/* File Gallery */
 .file-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
-    margin-bottom: 20px;
+    margin-top: 15px;
 }
 
 .file-card {
     background: white;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
     transition: all 0.3s;
 }
 
 .file-card:hover {
     border-color: var(--orange);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .file-card-preview {
     position: relative;
-    height: 120px;
-    background: var(--gray-100);
+    height: 110px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -956,7 +1106,7 @@ tr:hover td {
 }
 
 .file-icon {
-    font-size: 48px;
+    font-size: 40px;
 }
 
 .file-card-badge {
@@ -966,9 +1116,10 @@ tr:hover td {
     background: var(--orange);
     color: white;
     padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .file-card-info {
@@ -977,7 +1128,7 @@ tr:hover td {
 
 .file-card-name {
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-main);
     margin-bottom: 6px;
     overflow: hidden;
@@ -986,7 +1137,7 @@ tr:hover td {
 }
 
 .file-card-meta {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
     margin-bottom: 4px;
 }
@@ -1001,8 +1152,9 @@ tr:hover td {
     flex: 1;
     padding: 6px 10px;
     border: none;
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     text-align: center;
@@ -1011,18 +1163,29 @@ tr:hover td {
 }
 
 .file-card-btn.view {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
 }
 
 .file-card-btn.download {
-    background: var(--orange);
+    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
     color: white;
 }
 
 .file-card-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Submit Button */
+.modal-body .btn-primary {
+    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
+    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
+}
+
+.modal-body .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 128, 0, 0.4);
 }
 
 /* Drag & Drop Zone */
