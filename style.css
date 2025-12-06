@@ -565,15 +565,15 @@ textarea:valid {
 /* --- Drag & Drop --- */
 .custom-drop-zone {
     border: 2px dashed var(--gray-300);
-    border-radius: 16px;
-    padding: 30px;
+    border-radius: 12px;
+    padding: 20px;
     text-align: center;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: var(--gray-50);
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    max-width: 100%;
 }
 
 .custom-drop-zone:hover,
@@ -583,10 +583,21 @@ textarea:valid {
 }
 
 .custom-drop-zone-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
+    font-size: 32px;
+    margin-bottom: 8px;
     color: var(--orange);
     display: inline-block;
+}
+
+.custom-drop-zone-text {
+    margin: 8px 0;
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+.custom-drop-zone-subtext {
+    color: var(--text-muted);
+    font-size: 12px;
 }
 
 /* --- Notation (Stars) --- */

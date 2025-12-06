@@ -971,6 +971,44 @@ tr:hover td {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* Drag & Drop Zone */
+.custom-drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    background: var(--gray-light);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.custom-drop-zone:hover,
+.custom-drop-zone.drag-over {
+    border-color: var(--orange);
+    background: rgba(239, 128, 0, 0.05);
+}
+
+.custom-drop-zone-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: var(--orange);
+    display: inline-block;
+}
+
+.custom-drop-zone-text {
+    margin: 8px 0;
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+.custom-drop-zone-subtext {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
 /* ========================================
    STATISTIQUES PAGE
    ======================================== */
