@@ -746,65 +746,8 @@ tr:hover td {
    TICKET VIEW MODAL (ADMIN)
    ======================================== */
 
-/* Modal Sections */
-.ticket-section {
-    margin-bottom: 25px;
-}
-
-.ticket-section-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--border-color);
-}
-
 /* Assignment Section */
 .assignment-section {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid var(--border-color);
-    margin-bottom: 20px;
-}
-
-.assignment-controls {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-top: 12px;
-}
-
-.assignment-select {
-    flex: 1;
-    padding: 10px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.btn-assign {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-assign:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
-}
-
-/* Ticket Info Card */
-.ticket-info-card {
     background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
     padding: 20px;
     border-radius: 8px;
@@ -812,90 +755,30 @@ tr:hover td {
     margin-bottom: 20px;
 }
 
-.ticket-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 15px;
-}
-
-.ticket-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.ticket-meta-item {
+.assignment-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: var(--primary-dark);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+}
+
+.assignment-section select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
     font-size: 14px;
-    color: var(--text-muted);
+    margin-bottom: 10px;
 }
 
-.ticket-meta-item strong {
-    color: var(--text-main);
+.assignment-section button {
+    width: 100%;
 }
 
-.ticket-description {
-    background: white;
-    padding: 15px;
-    border-radius: 6px;
-    margin-top: 15px;
-    line-height: 1.6;
-    color: var(--text-main);
-}
-
-/* Status Badges */
-.status-badges-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.ticket-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.ticket-badge.status-ouvert {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.ticket-badge.status-en-cours {
-    background: rgba(239, 128, 0, 0.1);
-    color: #D67200;
-}
-
-.ticket-badge.status-ferme {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.ticket-badge.priority-haute {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.ticket-badge.priority-moyenne {
-    background: rgba(239, 128, 0, 0.1);
-    color: #D67200;
-}
-
-.ticket-badge.priority-basse {
-    background: var(--gray-light);
-    color: var(--text-muted);
-}
-
-/* Messages Section */
-.messages-container {
+/* Messages Container */
+#messagesContainer {
     background: var(--gray-light);
     padding: 15px;
     border-radius: 8px;
@@ -904,7 +787,8 @@ tr:hover td {
     margin-bottom: 20px;
 }
 
-.message-item {
+/* Message Styles */
+.message {
     background: white;
     padding: 15px;
     border-radius: 8px;
@@ -913,130 +797,178 @@ tr:hover td {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.message-item.admin-message {
+.message-admin {
     border-left-color: var(--orange);
-    background: rgba(239, 128, 0, 0.03);
+    background: rgba(239, 128, 0, 0.05);
 }
 
-.message-item.user-message {
+.message-user {
     border-left-color: #10b981;
-    background: rgba(16, 185, 129, 0.03);
+    background: rgba(16, 185, 129, 0.05);
 }
 
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+.message-system {
+    border-left-color: var(--gray-400);
+    background: var(--gray-50);
+    font-style: italic;
+    text-align: center;
+    font-size: 13px;
 }
 
-.message-author {
+.message strong {
     font-weight: 700;
     color: var(--primary-dark);
     font-size: 14px;
 }
 
-.message-date {
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.message-text {
+.message p {
+    margin-top: 8px;
     color: var(--text-main);
     line-height: 1.6;
+}
+
+/* Form Groups in Modal */
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
     font-size: 14px;
 }
 
-.no-messages {
-    text-align: center;
-    padding: 30px;
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-/* Response Section */
-.response-section {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid var(--border-color);
-}
-
-.template-select {
+.modal-body .form-group select,
+.modal-body .form-group textarea,
+.modal-body .form-group input[type="file"] {
     width: 100%;
-    padding: 10px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
-.response-textarea {
-    width: 100%;
-    min-height: 120px;
     padding: 12px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     font-size: 14px;
     font-family: inherit;
-    resize: vertical;
-    margin-bottom: 12px;
 }
 
-.response-textarea:focus {
+.modal-body .form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.modal-body .form-group select:focus,
+.modal-body .form-group textarea:focus {
     outline: none;
     border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(239, 128, 0, 0.1);
 }
 
-.file-upload-section {
-    margin-bottom: 12px;
+/* File Gallery in Modal */
+.file-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.file-upload-label {
-    display: block;
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-}
-
-/* Action Buttons */
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 2px solid var(--border-color);
-}
-
-.btn-modal-action {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
+.file-card {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
     transition: all 0.3s;
 }
 
-.btn-send-response {
-    background: linear-gradient(135deg, var(--orange) 0%, #D67200 100%);
+.file-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.file-card-preview {
+    position: relative;
+    height: 120px;
+    background: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.file-card-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-icon {
+    font-size: 48px;
+}
+
+.file-card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--orange);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.file-card-info {
+    padding: 12px;
+}
+
+.file-card-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-card-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.file-card-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 12px 12px 12px;
+}
+
+.file-card-btn {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.file-card-btn.view {
+    background: var(--primary);
     color: white;
 }
 
-.btn-send-response:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 128, 0, 0.3);
-}
-
-.btn-close-ticket {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.file-card-btn.download {
+    background: var(--orange);
     color: white;
 }
 
-.btn-close-ticket:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+.file-card-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* ========================================
