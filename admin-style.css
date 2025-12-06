@@ -746,11 +746,39 @@ tr:hover td {
    TICKET VIEW MODAL (ADMIN)
    ======================================== */
 
+/* Modal Body Spacing */
+.modal-body {
+    padding: 30px;
+}
+
+/* Section Cards */
+.ticket-info-section,
+.messages-section,
+.response-section-wrapper {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.ticket-info-section h4,
+.messages-section h4,
+.response-section-wrapper h4 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+}
+
 /* Assignment Section */
 .assignment-section {
     background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
     border-left: 4px solid var(--orange);
     margin-bottom: 20px;
 }
@@ -771,10 +799,35 @@ tr:hover td {
     border-radius: 6px;
     font-size: 14px;
     margin-bottom: 10px;
+    background: white;
 }
 
 .assignment-section button {
     width: 100%;
+}
+
+/* Ticket Info Display */
+.ticket-info-display {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.ticket-info-display h4 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.ticket-info-display p {
+    background: var(--gray-50);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0 0 0;
+    line-height: 1.6;
 }
 
 /* Messages Container */
@@ -784,7 +837,7 @@ tr:hover td {
     border-radius: 8px;
     max-height: 400px;
     overflow-y: auto;
-    margin-bottom: 20px;
+    margin-top: 15px;
 }
 
 /* Message Styles */
@@ -849,6 +902,7 @@ tr:hover td {
     border-radius: 6px;
     font-size: 14px;
     font-family: inherit;
+    background: white;
 }
 
 .modal-body .form-group textarea {
